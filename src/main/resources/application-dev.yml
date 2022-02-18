@@ -1,0 +1,79 @@
+my:
+  name: burger
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/member_database
+    username: sanho1tech
+    password: sanho0601
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        #        show_sql: true
+    #        format_sql: true
+    generate-ddl: true
+    show-sql: true
+  sql:
+    init:
+      mode: always
+#  kafka:
+#    consumer:
+#      bootstrap-servers: localhost:9092
+#      group-id: member-service
+#      auto-offset-reset: earliest
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      max-poll-records: 1000
+#    producer:
+#      bootstrap-servers: localhost:9092
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  redis:
+    #    host: hitup-redis.go5u2n.clustercfg.apn2.cache.amazonaws.com  # elastiCache
+    host: localhost
+    port: 6379
+
+feign:
+  httpclient:
+    follow-redirects: on
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.applicatiMemberController.kton.inatance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+logging:
+  level:
+    com.exaple.memberservice.client: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: beans, health, busrefresh, refresh
+
+cloud:
+  aws:
+    credentials:
+      accessKey: AKIAJ5O2JI2FW5ZZX6XA
+      secretKey: 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
+    s3:
+      bucket: hitup
+      url: hitup.s3.ap-northeast-2.amazonaws.com
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    cloud-front:
+      domain-name: d3bdkrhj3pjg86.cloudfront.net
+      distributionId: E1GAAS0DQFYG0Z
