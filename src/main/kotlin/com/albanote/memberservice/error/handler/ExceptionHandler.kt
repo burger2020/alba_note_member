@@ -1,7 +1,7 @@
 package com.albanote.memberservice.error.handler
 
 import com.albanote.memberservice.domain.dto.ErrorDTO
-import com.albanote.memberservice.error.exception.HitupException
+import com.albanote.memberservice.error.exception.BaseException
 import com.albanote.memberservice.error.exception.RefreshTokenNotValidException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,8 +17,8 @@ class ExceptionHandler {
      *
      * @author burger
      * */
-    @ExceptionHandler(value = [HitupException::class])
-    fun totalHitupException(e: HitupException): ResponseEntity<ErrorDTO> {
+    @ExceptionHandler(value = [BaseException::class])
+    fun totalHitupException(e: BaseException): ResponseEntity<ErrorDTO> {
         val errorDTO = ErrorDTO(message = e.message, code = e.code)
         val status = if (e is RefreshTokenNotValidException) HttpStatus.UNAUTHORIZED else HttpStatus.FORBIDDEN
         return ResponseEntity.status(status).body(errorDTO)

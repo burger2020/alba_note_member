@@ -6,6 +6,6 @@ package com.albanote.memberservice.error.exception
  *
  * @author burger
  * */
-class BlindMemberAccessException(message: String): HitupException(message, code = 600) {
+class BlindMemberAccessException(message: String): BaseException(message, code = 600) {
 
 }

@@ -13,14 +13,14 @@ noArg {
 	annotation("javax.persistence.Entity")
 	annotation("javax.persistence.Embeddable")
 	annotation("javax.persistence.MappedSuperclass")
-	annotation("com.albanote.hitup.memberservice.NoArgAndAllOpen")
+	annotation("com.albanote.memberservice.NoArgAndAllOpen")
 }
 
 allOpen {
 	annotation("javax.persistence.Entity")
 	annotation("javax.persistence.Embeddable")
 	annotation("javax.persistence.MappedSuperclass")
-	annotation("com.albanote.hitup.memberservice.NoArgAndAllOpen")
+	annotation("com.albanote.memberservice.NoArgAndAllOpen")
 }
 
 group = "com.albanote"
@@ -48,14 +48,6 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
-	//spring cloud
-	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
-	implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j") // circuitBreaker
-	implementation("org.springframework.cloud:spring-cloud-starter-config")
-	implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
-	implementation("org.springframework.cloud:spring-cloud-starter-bus-amqp") // spring cloud bus amqp
-	implementation("org.springframework.cloud:spring-cloud-starter-openfeign") // feign client
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
