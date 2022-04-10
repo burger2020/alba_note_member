@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 8000
 
 spring:
   profiles:
@@ -8,16 +8,6 @@ spring:
 
   application:
     name: member-service
-#  rabbitmq:
-#    host: localhost
-#    port: 5672
-#    username: guest
-#    password: guest
-
-#  mvc:
-#    view:
-#      prefix: /WEB-INF/jsp/
-#      suffix: .jsp
   datasource:
     url: jdbc:postgresql://localhost:5432/member_database
     username: sanho1tech
@@ -31,50 +21,19 @@ spring:
     properties:
       hibernate:
         default_batch_fetch_size: 100
-        #        show_sql: true
-    #        format_sql: true
-  #    generate-ddl: true
-  #    show-sql: true
+#          show_sql: true
+#          format_sql: true
+      generate-ddl: true
+      show-sql: true
   sql:
     init:
       mode: always
-#  kafka:
-#    consumer:
-#      bootstrap-servers: localhost:9092
-#      group-id: member-service
-#      auto-offset-reset: earliest
-#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      max-poll-records: 1000
-#    producer:
-#      bootstrap-servers: localhost:9092
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
   redis:
     #    host: hitup-redis.go5u2n.clustercfg.apn2.cache.amazonaws.com  # elastiCache
     host: 127.0.0.1
     port: 6379
 
-feign:
-  httpclient:
-    follow-redirects: true
-
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.inatance_id:${random.value}}
-    lease-renewal-interval-in-seconds: 1  # 1초 간격으로 discovery 에 상태 최신화
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8762/eureka
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: beans, health, busrefresh, refresh
 
 cloud:
   aws:
@@ -93,5 +52,16 @@ cloud:
       distributionId: E1GAAS0DQFYG0Z
 
 security:
-  access:
-    ipAddress:
+  basic:
+    server_id: albanote_id_blac
+    server_pwd: albanote_pwd_2013
+  member:
+    password: 123123
+
+token:
+  expiration_time: 86400000
+  secret: alba_note_user_token
+refresh_token:
+  expiration_time: 6220800000
+  secret: alba_note_user_refresh_token
+

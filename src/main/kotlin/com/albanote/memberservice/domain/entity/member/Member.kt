@@ -1,44 +1,34 @@
 package com.albanote.memberservice.domain.entity.member
 
-import com.albanote.memberservice.domain.dto.request.member.MemberLoginRequestDTO
-import org.springframework.data.annotation.CreatedDate
+import com.albanote.memberservice.domain.entity.BaseTimeEntity
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import java.time.LocalDateTime
-import java.util.*
 import javax.persistence.*
 
 @Entity
-@AttributeOverride(name = "uuid", column = Column(name = "member_uuid"))
+@AttributeOverride(name = "id", column = Column(name = "member_id"))
 @EntityListeners(AuditingEntityListener::class)
 class Member(
-    @Id
-    var uuid: String? = null,
+    id: Long? = null,
 
-    var id: String? = null,
+    @Column(columnDefinition = "TEXT", nullable = false)
+    var socialId: String? = null,
 
-    @CreatedDate
-    var createDate: LocalDateTime? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "TEXT", nullable = false)
+    var socialLoginType: SocialLoginType? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "TEXT", nullable = false)
+    var osType: OsType? = null,
 
     @Column(columnDefinition = "TEXT", nullable = false)
     val pwd: String? = null,
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    var name: String? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "TEXT", nullable = true)
+    var memberType: MemberType? = null,
 
-    @Column(columnDefinition = "TEXT", nullable = false, unique = true)
-    var nickname: String? = null,
-
-    @Column(columnDefinition = "TEXT", nullable = true, unique = true)
-    var imageUrl: String? = null
-
-) {
-
-    constructor(member: MemberLoginRequestDTO, passwordEncoder: BCryptPasswordEncoder) : this(
-        uuid = UUID.randomUUID().toString().substring(0..10),
-        id = member.id,
-        pwd = passwordEncoder.encode(member.pwd),
-//        name = member.name,
-//        nickname = member.nickname
-    )
-}
+    @JoinColumn(name = "fcm_token_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    val fcmToken: MemberFcmToken? = null
+) : BaseTimeEntity(id)

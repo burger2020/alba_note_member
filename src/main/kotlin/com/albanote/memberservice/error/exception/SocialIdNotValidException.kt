@@ -6,5 +6,5 @@ package com.albanote.memberservice.error.exception
  *
  * @author burger
  * */
-class SocialIdNotValidException(message: String): HitupException(message, code = 602) {
+class SocialIdNotValidException(message: String): BaseException(message, code = 602) {
 }

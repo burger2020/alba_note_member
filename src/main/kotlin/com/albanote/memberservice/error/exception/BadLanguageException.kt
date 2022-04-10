@@ -1,3 +1,3 @@
 package com.albanote.memberservice.error.exception
 
-class BadLanguageException(message: String): HitupException(message, code = 601)
+class BadLanguageException(message: String): BaseException(message, code = 601)
