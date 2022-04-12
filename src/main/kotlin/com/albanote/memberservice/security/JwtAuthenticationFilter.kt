@@ -23,7 +23,8 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
 
     override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
         request as HttpServletRequest
-        if (request.requestURI.contains("/admin") ||
+        if (request.requestURI.contains("/health_check") ||
+            request.requestURI.contains("/admin") ||
             request.requestURI.contains("/login") ||
             request.requestURI.contains("/websocket") ||
             request.requestURI.contains("/error") ||
@@ -50,7 +51,8 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
 
     private fun onException(e: BaseException, response: ServletResponse?) {
         response as HttpServletResponse
-        response.status = if(e is RefreshTokenNotValidException) HttpStatus.UNAUTHORIZED.value() else HttpStatus.FORBIDDEN.value()
+        response.status =
+            if (e is RefreshTokenNotValidException) HttpStatus.UNAUTHORIZED.value() else HttpStatus.FORBIDDEN.value()
         response.contentType = "application/json; charset=UTF-8"
         val errorDTO = ErrorDTO(message = e.message, code = e.code)
         val mapper = ObjectMapper()
