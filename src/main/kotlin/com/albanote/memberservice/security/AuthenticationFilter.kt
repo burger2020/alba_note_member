@@ -36,7 +36,7 @@ class AuthenticationFilter(
     private val redisMemberService: RedisMemberService
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
-
+    // '/login'
     //todo 앱 -> 소셜아이디 넘어오는거 까지 됨 - 넘어온 아이디 인증? or 그냥 회원가입,로그인?
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         try {
