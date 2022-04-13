@@ -1,11 +1,8 @@
 package com.albanote.memberservice.service.member
 
 import com.albanote.memberservice.domain.dto.response.MemberLoginResponseDTO
-import com.albanote.memberservice.domain.entity.member.Member
-import com.albanote.memberservice.domain.entity.member.MemberType
-import com.albanote.memberservice.domain.entity.member.OsType
+import com.albanote.memberservice.domain.entity.member.*
 import com.albanote.memberservice.repository.member.MemberRepository
-import com.albanote.memberservice.domain.entity.member.SocialLoginType
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -43,15 +40,24 @@ class MemberService(
         return memberRepository.findMemberInfoBySocialId(socialId)
     }
 
-    @Transactional
     /** 멤버 타입 선택 **/
+    @Transactional
     fun putSelectMemberType(memberId: Long, memberType: MemberType) {
         memberRepository.updateMemberType(memberId, memberType)
     }
 
-    @Transactional
     /** fcm token 변경 **/
+    @Transactional
     fun putMemberFcmToken(memberId: Long, fcmToken: String) {
-        memberRepository.updateMemberFcmToken(memberId, fcmToken)
+        val isExist = memberRepository.updateMemberFcmToken(memberId, fcmToken)
+        if (!isExist) {
+            val fcmTokenEntity = MemberFcmToken(member = Member(memberId), fcmToken = fcmToken)
+            em.persist(fcmTokenEntity)
+        }
+    }
+
+    /** 멤버 로그아웃 **/
+    fun postMemberLogout(id: Long) {
+        memberRepository.updateMemberFcmToNullByMember(id)
     }
 }

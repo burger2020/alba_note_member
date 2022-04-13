@@ -2,6 +2,7 @@ package com.albanote.memberservice.security
 
 import com.albanote.memberservice.domain.dto.request.member.MemberLoginRequestDTO
 import com.albanote.memberservice.domain.dto.response.MemberTokenResponseDTO
+import com.albanote.memberservice.domain.entity.member.SocialLoginType
 import com.albanote.memberservice.redis.RedisMemberService
 import com.albanote.memberservice.domain.entity.member.SocialLoginType.*
 import com.albanote.memberservice.service.member.MemberService
@@ -11,6 +12,7 @@ import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.core.env.Environment
 import org.springframework.http.*
+import org.springframework.http.HttpMethod.*
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -41,12 +43,18 @@ class AuthenticationFilter(
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         try {
             val cred = ObjectMapper().readValue(request.inputStream, MemberLoginRequestDTO::class.java)
-            //todo 재검증이 필요한가?
+            //todo naver, apple login + idToken to sub
             val pwd = env.getProperty("security.member.password")
-            val token = UsernamePasswordAuthenticationToken(cred.socialId, pwd, listOf())
+            val sub = when (cred.socialLoginType) {
+                APPLE, GOOGLE -> getSocialIdByGoogleIdToken(cred.socialId)
+                KAKAO -> getSocialIdByKakaoToken(cred.socialId)
+                NAVER -> getSocialIdByKakaoToken(cred.socialId)
+                TEST -> "TEST_TOKEN:" + System.currentTimeMillis() % 1000
+            }
+            val token = UsernamePasswordAuthenticationToken(sub, pwd, listOf())
 
             memberService.memberCheckExistAndCreate(
-                cred.socialId,
+                sub,
                 passwordEncoder.encode(pwd),
                 cred.socialLoginType,
                 cred.osType
@@ -66,12 +74,15 @@ class AuthenticationFilter(
         authResult: Authentication
     ) {
         val socialId = (authResult.principal as User).username
+        val memberInfo = memberService.getMemberInfo(socialId)
+
         val now = System.currentTimeMillis()
         val secret = env.getProperty("token.secret")
         val accessToken = Jwts.builder()
-            .setSubject(socialId)
-//            .setExpiration(Date(now + 5000L)) // 토큰 유효기간 10초 테스트
+            .setSubject(memberInfo?.id.toString())
             .setExpiration(Date(now + env.getProperty("token.expiration_time")!!.toLong()))
+            .setIssuer(env.getProperty("token.issuer"))
+            .setIssuedAt(Date())
             .signWith(SignatureAlgorithm.HS512, secret)
             .compact()
 
@@ -79,19 +90,52 @@ class AuthenticationFilter(
         val expiredDate = Date(now + env.getProperty("refresh_token.expiration_time")!!.toLong())
 //        val expiredDate = Date(now + 20 * 1000) // 유효기간 30초
         val refreshToken = Jwts.builder()
-            .setSubject(socialId)
+            .setSubject(memberInfo?.id.toString())
             .setExpiration(expiredDate)
+            .setIssuer(env.getProperty("refresh_token.issuer"))
+            .setIssuedAt(Date())
             .signWith(SignatureAlgorithm.HS512, refreshSecret)
-            .compact()
+            .compact().also { token ->
+                redisMemberService.setMemberRefreshToken(memberInfo!!.id!!, token, expiredDate)
+            }
 
-        redisMemberService.setMemberRefreshToken(socialId, refreshToken, expiredDate)
-
-        val memberInfo = memberService.getMemberInfo(socialId)
         memberInfo?.memberTokenInfo = MemberTokenResponseDTO(accessToken, refreshToken)
 
         response.status = HttpStatus.OK.value()
         response.characterEncoding = "utf-8"
         response.writer.write(ObjectMapper().writeValueAsString(memberInfo))
         response.flushBuffer()
+    }
+
+    private fun getSocialIdByGoogleIdToken(idToken: String): String {
+        val url = "https://oauth2.googleapis.com/tokeninfo?id_token=$idToken"
+        val json = postReceiveToCollector(url, null, GET, String::class.java).toString()
+        val map = ObjectMapper().readValue(json, Map::class.java)
+        return map["sub"].toString()
+    }
+
+    private fun getSocialIdByKakaoToken(idToken: String): String {
+        val url = "https://kauth.kakao.com/oauth/tokeninfo?id_token=$idToken"
+        val json = postReceiveToCollector(url, null, POST, String::class.java).toString()
+        val map = ObjectMapper().readValue(json, Map::class.java)
+        return map["sub"].toString()
+    }
+
+    private fun <T> postReceiveToCollector(url: String, obj: Any?, method: HttpMethod, responseType: Class<T>): T? {
+        val duration = Duration.ofSeconds(5000)
+        val restTemplate: RestTemplate = RestTemplateBuilder()
+            .setConnectTimeout(duration)
+            .setReadTimeout(duration)
+            .build()
+
+        val headers = HttpHeaders()
+        if (obj != null) headers["Authorization"] = "Bearer $obj"
+        headers.contentType = MediaType.APPLICATION_JSON
+
+        val request = HttpEntity(obj, headers)
+
+        val responseEntity = restTemplate.exchange(url, method, request, responseType)
+
+        return responseEntity.body
     }
 }

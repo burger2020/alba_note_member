@@ -49,24 +49,27 @@ class CommonController(
             ?: headers.toSingleValueMap()["Authorization"]
                 ?.replace("Bearer", "")?.replace(" ", "")
             ?: throw RefreshTokenNotValidException("Null JWT Refresh token.")
-        val memberId = dto.id
+        val memberId = dto.memberId
         if (redisMemberService.isValidMemberRefreshToken(memberId, refreshToken)) {
             val now = System.currentTimeMillis()
             val secret = env.getProperty("token.secret")
             val accessToken = Jwts.builder()
-                .setSubject(memberId)
+                .setSubject(memberId.toString())
                 .setExpiration(Date(now + env.getProperty("token.expiration_time")!!.toLong()))
+                .setIssuer(env.getProperty("token.issuer"))
+                .setIssuedAt(Date())
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact()
 
             // refresh token 유효기간 1주 이내일 시 새로운 refresh token 발급
             val newRefreshToken = if (!isRefreshTokenValidExpiration(refreshToken)) {
-                val refreshSecret = env.getProperty("refresh_token.secret")
                 val expiredDate = Date(now + env.getProperty("refresh_token.expiration_time")!!.toLong())
                 Jwts.builder()
-                    .setSubject(memberId)
+                    .setSubject(memberId.toString())
                     .setExpiration(expiredDate)
-                    .signWith(SignatureAlgorithm.HS512, refreshSecret)
+                    .setIssuer(env.getProperty("refresh_token.issuer"))
+                    .setIssuedAt(Date())
+                    .signWith(SignatureAlgorithm.HS512, env.getProperty("refresh_token.secret"))
                     .compact().also { token ->
                         redisMemberService.setMemberRefreshToken(memberId, token, expiredDate)
                     }
