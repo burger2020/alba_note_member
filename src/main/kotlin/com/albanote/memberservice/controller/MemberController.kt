@@ -1,6 +1,7 @@
 package com.albanote.memberservice.controller
 
 import com.albanote.memberservice.domain.dto.BodyWithMemberId
+import com.albanote.memberservice.domain.dto.MemberIdRequestDTO
 import com.albanote.memberservice.domain.entity.member.MemberType
 import com.albanote.memberservice.service.member.MemberService
 import org.slf4j.Logger
@@ -32,7 +33,7 @@ class MemberController(
         @RequestBody body: BodyWithMemberId<MemberType>
     ): ResponseEntity<Boolean> {
         memberService.putSelectMemberType(body.memberId, body.body)
-
+        
         return ResponseEntity.ok(true)
     }
 
@@ -42,6 +43,14 @@ class MemberController(
         @RequestBody body: BodyWithMemberId<String> // fcm token
     ): ResponseEntity<Boolean> {
         memberService.putMemberFcmToken(body.memberId, body.body)
+
+        return ResponseEntity.ok(true)
+    }
+
+    /** 로그아웃 -> 토큰 정보 삭제 **/
+    @PostMapping("/logout")
+    fun postMemberLogout(body: MemberIdRequestDTO): ResponseEntity<Boolean> {
+        memberService.postMemberLogout(body.memberId)
 
         return ResponseEntity.ok(true)
     }

@@ -52,10 +52,18 @@ class MemberRepository : RepositorySupport() {
     }
 
     /** fcm token 변경 **/
-    fun updateMemberFcmToken(memberId: Long, newFcmToken: String) {
-        update(memberFcmToken)
+    fun updateMemberFcmToken(memberId: Long, newFcmToken: String): Boolean {
+        return update(memberFcmToken)
             .where(memberFcmToken.member.id.eq(memberId))
             .set(memberFcmToken.fcmToken, newFcmToken)
+            .execute() > 0
+    }
+
+    /** fcm token to null **/
+    fun updateMemberFcmToNullByMember(id: Long) {
+        update(memberFcmToken)
+            .where(memberFcmToken.member.id.eq(id))
+            .setNull(memberFcmToken.fcmToken)
             .execute()
     }
 }

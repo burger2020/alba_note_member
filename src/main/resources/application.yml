@@ -21,10 +21,10 @@ spring:
     properties:
       hibernate:
         default_batch_fetch_size: 100
-#          show_sql: true
-#          format_sql: true
-      generate-ddl: true
-      show-sql: true
+        show_sql: true
+        format_sql: true
+#      generate-ddl: true
+#      show-sql: true
   sql:
     init:
       mode: always
@@ -61,7 +61,9 @@ security:
 token:
   expiration_time: 86400000
   secret: alba_note_user_token
+  issuer: alba_note
 refresh_token:
   expiration_time: 6220800000
   secret: alba_note_user_refresh_token
+  issuer: alba_note
 
