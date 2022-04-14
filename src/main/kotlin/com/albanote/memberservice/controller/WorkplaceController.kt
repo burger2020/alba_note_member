@@ -60,4 +60,14 @@ class WorkplaceController(
 
         return ResponseEntity.ok(requestDetail)
     }
+
+    /** 할 일 리스트 조회 **/
+    @GetMapping("/todoList")
+    fun getTotoList(
+        @RequestParam workplaceId: Long,
+        @PageableDefault(page = 0, size = 20) pageable: Pageable
+    ){
+        workplaceService.getTodoList(workplaceId, pageable)
+
+    }
 }

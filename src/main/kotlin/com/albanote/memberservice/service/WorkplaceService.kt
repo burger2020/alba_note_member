@@ -22,7 +22,7 @@ class WorkplaceService(
     fun getWorkplaceInfo(memberId: Long, workplaceId: Long?): WorkplaceInfoOfBossResponseDTO {
         val workplaceInfo = workplaceRepository.findMyWorkplaceInfo(memberId, workplaceId) ?: throw Exception("없는 일터")
 
-        val completedTodos = workplaceRepository.findWorkplaceTodayCompletedTodo(workplaceInfo.workplaceId)
+        val completedTodos = workplaceRepository.findWorkplaceTodoRecordByDate(workplaceInfo.workplaceId)
         val totalTodayTodoCount = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceInfo.workplaceId)
         val currentEmployees = workplaceRepository.findWorkplaceCurrentEmployees(workplaceInfo.workplaceId)
         val requestList = getRequestList(workplaceInfo.workplaceId, PageRequest.of(0, 10))
@@ -63,5 +63,9 @@ class WorkplaceService(
         requestDetail.requestMember.imageUrl = s3service.convertCloudFrontUrl(requestDetail.requestMember.imageUrl)
 
         return requestDetail
+    }
+
+    fun getTodoList(workplaceId: Long, pageable: Pageable) {
+        workplaceRepository.findTodoListByWorkplace(workplaceId, pageable)
     }
 }

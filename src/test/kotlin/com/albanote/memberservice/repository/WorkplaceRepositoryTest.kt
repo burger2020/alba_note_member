@@ -14,7 +14,7 @@ internal class WorkplaceRepositoryTest {
         val workplaceId = 0L
         val count = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceId)
 
-        val substring = workplaceRepository.test()
-        println("count =========== $count + $substring")
+//        val substring = workplaceRepository.()
+//        println("count =========== $count + $substring")
     }
 }
