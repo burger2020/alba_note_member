@@ -62,6 +62,12 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 
+	//aws
+	implementation("org.springframework.cloud:spring-cloud-aws:2.2.5.RELEASE")
+	implementation("org.springframework.cloud:spring-cloud-aws-context:2.2.5.RELEASE")
+	// aws java sdk
+	implementation(platform("com.amazonaws:aws-java-sdk-bom:1.11.997"))
+	implementation("com.amazonaws:aws-java-sdk-cloudfront")
 
 //	// firebase
 //	implementation("com.google.firebase:firebase-admin:8.0.0")

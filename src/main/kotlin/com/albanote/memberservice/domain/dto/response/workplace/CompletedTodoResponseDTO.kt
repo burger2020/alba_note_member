@@ -9,7 +9,8 @@ import java.time.LocalTime
 class CompletedTodoResponseDTO @QueryProjection constructor(
     val todoRecordId: Long,
     val todoTitle: String,
-    val completedTime: LocalTime
+    val completedTime: LocalTime,
+    val completedMember: EmployeeMemberSimpleResponseDTO
 ) {
 
 }
