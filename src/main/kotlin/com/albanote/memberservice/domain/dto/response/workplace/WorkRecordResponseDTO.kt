@@ -6,7 +6,8 @@ import java.time.LocalTime
 /**
  * 현재 근무자 조회 DTO
  * */
-class CurrentEmployeeResponseDTO @QueryProjection constructor(
+class WorkRecordResponseDTO @QueryProjection constructor(
     val currentEmployee: EmployeeMemberSimpleResponseDTO,
-    val officeGoingTime: LocalTime,
+    val officeGoingTime: LocalTime?,
+    val quittingTime: LocalTime?,
 )

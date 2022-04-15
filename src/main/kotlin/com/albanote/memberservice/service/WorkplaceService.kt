@@ -1,9 +1,6 @@
 package com.albanote.memberservice.service
 
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceInfoOfBossResponseDTO
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceListResponseDTO
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceRequestDetailResponseDTO
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceRequestSimpleResponseDTO
+import com.albanote.memberservice.domain.dto.response.workplace.*
 import com.albanote.memberservice.repository.WorkplaceRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -21,8 +18,9 @@ class WorkplaceService(
     /** 홈화면 대표 일터 정보 조회 **/
     fun getWorkplaceInfo(memberId: Long, workplaceId: Long?): WorkplaceInfoOfBossResponseDTO {
         val workplaceInfo = workplaceRepository.findMyWorkplaceInfo(memberId, workplaceId) ?: throw Exception("없는 일터")
-
-        val completedTodos = workplaceRepository.findWorkplaceTodoRecordByDate(workplaceInfo.workplaceId)
+        val pageable = PageRequest.of(0, 10)
+        val completedTodos =
+            workplaceRepository.findWorkplaceTodoRecordsByDate(workplaceInfo.workplaceId, true, pageable)
         val totalTodayTodoCount = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceInfo.workplaceId)
         val currentEmployees = workplaceRepository.findWorkplaceCurrentEmployees(workplaceInfo.workplaceId)
         val requestList = getRequestList(workplaceInfo.workplaceId, PageRequest.of(0, 10))
@@ -33,7 +31,7 @@ class WorkplaceService(
         workplaceInfo.workplaceRequest.addAll(requestList)
 
         workplaceInfo.completedTodos.forEach {
-            it.completedMember.imageUrl = s3service.convertCloudFrontUrl(it.completedMember.imageUrl)
+            it.completedMember?.imageUrl = s3service.convertCloudFrontUrl(it.completedMember?.imageUrl)
         }
         workplaceInfo.currentEmployees.forEach {
             it.currentEmployee.imageUrl = s3service.convertCloudFrontUrl(it.currentEmployee.imageUrl)
@@ -47,7 +45,7 @@ class WorkplaceService(
         return workplaceRepository.findWorkplaceListByMember(memberId)
     }
 
-    /** 일터 요청 조회 **/
+    /** 요청 조회 **/
     fun getRequestList(workplaceId: Long, pageable: Pageable): List<WorkplaceRequestSimpleResponseDTO> {
         val requestList = workplaceRepository.findRequestListByWorkplace(workplaceId, pageable)
         requestList.forEach {
@@ -57,7 +55,7 @@ class WorkplaceService(
         return requestList
     }
 
-    /** 일터 요청 자세히 보기 **/
+    /** 요청 상세 보기 **/
     fun getRequestDetail(requestId: Long): WorkplaceRequestDetailResponseDTO {
         val requestDetail = workplaceRepository.findRequestDetail(requestId) ?: throw Exception("존재하지 않는 요청")
         requestDetail.requestMember.imageUrl = s3service.convertCloudFrontUrl(requestDetail.requestMember.imageUrl)
@@ -65,7 +63,41 @@ class WorkplaceService(
         return requestDetail
     }
 
-    fun getTodoList(workplaceId: Long, pageable: Pageable) {
-        workplaceRepository.findTodoListByWorkplace(workplaceId, pageable)
+    /** 할 일 리스트 조회 **/
+    fun getTodoRecordList(workplaceId: Long, pageable: Pageable): List<TodoRecordResponseDTO> {
+        val todoRecords = workplaceRepository.findWorkplaceTodoRecordsByDate(workplaceId, false, pageable)
+        todoRecords.forEach {
+            it.completedMember?.imageUrl = s3service.convertCloudFrontUrl(it.completedMember?.imageUrl)
+        }
+
+        return todoRecords
+    }
+
+    /** 할 일 기록 상세 조회 **/
+    fun getTodoRecordDetail(todoRecordId: Long?, todoId: Long): WorkplaceTodoRecordDetailResponseDTO {
+        val todoRecordDetail = workplaceRepository.findWorkplaceTodoRecordDetail(todoRecordId, todoId)
+        todoRecordDetail.todo?.chargeEmployee?.forEach {
+            it.imageUrl = s3service.convertCloudFrontUrl(it.imageUrl)
+        }
+
+        return todoRecordDetail
+    }
+
+    /** 현재 근무 직원 + 그 외 직원 조회 **/
+    fun getWorkRecordList(workplaceId: Long): MutableList<WorkRecordResponseDTO> {
+        // 현재 근무중인 직원
+        val currentEmployees = workplaceRepository.findWorkplaceCurrentEmployees(workplaceId)
+
+        // 그 외 직원
+        val currentEmployeeIds = currentEmployees.map { it.currentEmployee.memberId }
+        val employees = workplaceRepository.finEmployeesByWorkplace(workplaceId, currentEmployeeIds)
+
+        currentEmployees.addAll(employees.map { WorkRecordResponseDTO(it, null, null) })
+
+        currentEmployees.forEach {
+            it.currentEmployee.imageUrl = s3service.convertCloudFrontUrl(it.currentEmployee.imageUrl)
+        }
+
+        return currentEmployees
     }
 }

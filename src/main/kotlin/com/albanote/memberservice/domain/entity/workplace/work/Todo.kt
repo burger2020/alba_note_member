@@ -2,6 +2,10 @@ package com.albanote.memberservice.domain.entity.workplace.work
 
 import com.albanote.memberservice.domain.entity.BaseEntity
 import com.albanote.memberservice.domain.entity.workplace.Workplace
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.springframework.data.annotation.CreatedDate
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.persistence.*
 
@@ -9,6 +13,9 @@ import javax.persistence.*
 @AttributeOverride(name = "id", column = Column(name = "todo_id"))
 class Todo(
     id: Long? = null,
+
+    @CreatedDate
+    var createDate: LocalDate? = null,
 
     @JoinColumn(name = "workplace_id")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,8 +37,9 @@ class Todo(
     // 인증사진 필수 여부
     var isAuthenticationImageRequire: Boolean? = null,
 
-    // 마감 시간
-    var deadline: LocalTime? = null,
+    // 시작, 마감 시간
+    var startTime: LocalTime? = null,
+    var endTime: LocalTime? = null,
 
     // 할 일 주기
     @Enumerated(EnumType.STRING)
@@ -42,4 +50,7 @@ class Todo(
     // 일일 - null / 주간 - (SMTWTFS) ex) 화, 일 -> _1____1 / 월간 1일, 10일, 15일, 30일 -> 1________1____1_______________1_
     @Column(columnDefinition = "TEXT", nullable = true)
     var todoDays: String? = null,
-) : BaseEntity(id)
+) : BaseEntity(id){
+    @JsonIgnore
+    var isToday = true
+}

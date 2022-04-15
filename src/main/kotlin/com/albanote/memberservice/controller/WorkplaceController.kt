@@ -1,9 +1,6 @@
 package com.albanote.memberservice.controller
 
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceInfoOfBossResponseDTO
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceListResponseDTO
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceRequestDetailResponseDTO
-import com.albanote.memberservice.domain.dto.response.workplace.WorkplaceRequestSimpleResponseDTO
+import com.albanote.memberservice.domain.dto.response.workplace.*
 import com.albanote.memberservice.service.WorkplaceService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -62,12 +59,33 @@ class WorkplaceController(
     }
 
     /** 할 일 리스트 조회 **/
-    @GetMapping("/todoList")
-    fun getTotoList(
+    @GetMapping("/todoRecordList")
+    fun getTodoRecordList(
         @RequestParam workplaceId: Long,
         @PageableDefault(page = 0, size = 20) pageable: Pageable
-    ){
-        workplaceService.getTodoList(workplaceId, pageable)
+    ): ResponseEntity<List<TodoRecordResponseDTO>> {
+        val recordList = workplaceService.getTodoRecordList(workplaceId, pageable)
 
+        return ResponseEntity.ok(recordList)
     }
+
+    /** 할 일 기록 상세 조회 **/
+    @GetMapping("/todoRecordDetail")
+    fun getTodoRecordDetail(
+        @RequestParam todoRecordId: Long?,
+        @RequestParam todoId: Long
+    ) {
+        workplaceService.getTodoRecordDetail(todoRecordId, todoId)
+    }
+
+    /** 현재 근무 직원 + 그 외 직원 조회 **/
+    @GetMapping("/workRecordList")
+    fun getWorkRecord(
+        @RequestParam workplaceId: Long
+    ): ResponseEntity<MutableList<WorkRecordResponseDTO>> {
+        val employees = workplaceService.getWorkRecordList(workplaceId)
+
+        return ResponseEntity.ok(employees)
+    }
+
 }
