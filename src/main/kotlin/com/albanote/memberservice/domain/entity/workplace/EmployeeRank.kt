@@ -56,22 +56,29 @@ class EmployeeRank(
     // 휴게시간 분단위
     val breakTime: Int? = null,
 
-    // 근무 요일 (SMTWTFS) 출근 안하는날은 _ ex) 월수금일 출근 -> 1_1_1_1
+    // 근무 요일 (MTWTFSS) 출근 안하는날은 _ ex) 월수금일 출근 -> 1_1_1_1
+    @Column(columnDefinition = "TEXT", nullable = true)
     val workingDay: String? = null,
 
-    // 유급 요일 (SMTWTFS) 출근하는 날 _ ex) 일 유급 휴일 -> ______1
+    // 유급 요일 (MTWTFSS) 출근하는 날 _ ex) 일 유급 휴일 -> ______1
+    @Column(columnDefinition = "TEXT", nullable = true)
     val paidHoliday: String? = null,
 
-    // 급여일  일 -> 1, 1일 -> 1
+    // 급여일 수요일 -> 3, 5일 -> 5
     var payday: Int? = null,
 
-    // 급여 정산일  일 ~ 토 -> 1, 1일 까지 -> 1
+    // 급여 정산일  월 ~ 일 -> 7, 1일 까지 -> 1
     var settlementDate: Int? = null,
 
     // 근무 지급 방식
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "TEXT", nullable = true)
     var workRecordType: WorkRecordType? = null,
+
+    // 출퇴근 시간 요일별로 다른지 여부
+    var isCommuteTimeVaryByDayOfWeek: Boolean? = null,
+    @OneToMany(mappedBy = "dayOfWeek")
+    val commuteTimeByDateOfWeek: MutableList<CommuteTimeByDayOfWeek> = mutableListOf(),
 
     // 근무 승인 필수 여부
     var isWorkApprovalRequirement: Boolean? = null,

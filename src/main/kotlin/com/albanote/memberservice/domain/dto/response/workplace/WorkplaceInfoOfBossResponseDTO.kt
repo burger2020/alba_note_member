@@ -10,7 +10,7 @@ class WorkplaceInfoOfBossResponseDTO @QueryProjection constructor(
     val workplaceTitle: String
 ) {
     var workplaceRequest: MutableList<WorkplaceRequestSimpleResponseDTO> = mutableListOf()
-    var currentEmployees: MutableList<CurrentEmployeeResponseDTO> = mutableListOf()
-    var completedTodos: MutableList<CompletedTodoResponseDTO> = mutableListOf()
+    var currentEmployees: MutableList<WorkRecordResponseDTO> = mutableListOf()
+    var completedTodos: MutableList<TodoRecordResponseDTO> = mutableListOf()
     var totalTodoCount: Int = 0
 }

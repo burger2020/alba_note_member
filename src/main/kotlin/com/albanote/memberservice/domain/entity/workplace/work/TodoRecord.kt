@@ -30,6 +30,9 @@ class TodoRecord(
     // 근무 날짜
     val todoDate: LocalDate? = null,
     // 완료 시간
-    val CompletionTime: LocalTime? = null,
+    val completedTime: LocalTime? = null,
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    val memo: String? = null
 ) : BaseEntity(id) {
 }

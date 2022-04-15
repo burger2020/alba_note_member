@@ -1,9 +1,13 @@
 package com.albanote.memberservice.repository
 
+import com.albanote.memberservice.domain.dto.query.workplace.QWorkTodayEmployeeDTO
+import com.albanote.memberservice.domain.dto.query.workplace.QWorkplaceTodoDTO
+import com.albanote.memberservice.domain.dto.query.workplace.WorkplaceTodoDTO
 import com.albanote.memberservice.domain.dto.response.workplace.*
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeMember.employeeMember
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeRank.employeeRank
 import com.albanote.memberservice.domain.entity.workplace.QWorkplace.workplace
+import com.albanote.memberservice.domain.entity.workplace.work.QEmployeeTodo.employeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.QTodo.todo
 import com.albanote.memberservice.domain.entity.workplace.work.QTodoRecord.todoRecord
 import com.albanote.memberservice.domain.entity.workplace.work.QWorkRecord.workRecord
@@ -31,22 +35,22 @@ class WorkplaceRepository : RepositorySupport() {
     }
 
     /** 오늘 완료한 할 일 조회 **/
-    fun findWorkplaceTodoRecordByDate(
+    fun findWorkplaceTodoRecordsByDate(
         workplaceId: Long,
         isComplete: Boolean,
+        pageable: Pageable,
         date: LocalDate = LocalDate.now()
-    ): List<CompletedTodoResponseDTO> {
-        // todo 완료되지 않은 todo 는 어떻게 보여줄지
-        // 1. 매일 자정마다 모든 todoResult 를 완료되지 않음 상태로 생성
-        // 2. 매번 조회 시 일터별 todo 조회 후 완료한것들 조회해서 미완료와 분류
-        // 24시 넘어가는 todo 의 경우 1번이 조회하기 유리할 듯?
-        // test 를 진행해 봅시다~~
-        return select(
-            QCompletedTodoResponseDTO(
+    ): List<TodoRecordResponseDTO> {
+        // 오늘 어제 완료된 할 일 조회
+        val completedTodos = select(
+            QTodoRecordResponseDTO(
                 todoRecord.id,
+                todo.id,
                 todo.title,
-                todoRecord.CompletionTime,
+                todoRecord.completedTime,
+                todoRecord.todoDate,
                 QEmployeeMemberSimpleResponseDTO(
+                    employeeMember.member.id,
                     employeeMember.id,
                     employeeMember.name,
                     employeeMember.imageUrl,
@@ -59,11 +63,102 @@ class WorkplaceRepository : RepositorySupport() {
             .innerJoin(employeeMember.employeeRank, employeeRank)
             .where(
                 todoRecord.workplace.id.eq(workplaceId),
-                todoRecord.todoDate.eq(date)
-            ).apply {
-                if(isComplete) todoRecord
-            }
+                todoRecord.todoDate.eq(date).or(
+                    todoRecord.todoDate.eq(date.minusDays(1)).and(
+                        todo.startTime.gt(todo.endTime)
+                    )
+                )
+            )
+            .pageableOption(pageable)
             .fetch()
+            .toMutableList()
+
+        if (!isComplete) {
+            // 일터에 등록된 할일 조회
+            val todos = select(
+                QWorkplaceTodoDTO(
+                    todo.id,
+                    todo.title,
+                    todo.todoCycleType,
+                    todo.todoDays,
+                    todo.startTime,
+                    todo.endTime
+                )
+            )
+                .from(todo)
+                .where(
+                    todo.workplace.id.eq(workplaceId),
+                    // 오늘만 할 일일 경우 생성 날짜가 어제 또는 오늘(마감시간이 당일 넘거갈 수 있으므로)
+                    todo.todoCycleType.eq(TODAY)
+                        .and(
+                            // 어제 등록 된
+                            todo.createDate.eq(LocalDate.now().minusDays(1))
+                                .and(
+                                    todo.startTime.isNotNull
+                                        .and(todo.endTime.isNotNull)
+                                        .and(todo.startTime.gt(todo.endTime))
+                                ).or(todo.createDate.eq(LocalDate.now()))
+                        )
+                        .or( // 또는 생성 날짜가 오늘 이전인것들만
+                            todo.todoCycleType.ne(TODAY).and(todo.createDate.goe(date.minusDays(1)))
+                        )
+                )
+                .fetch()
+
+            val dayOfWeek = LocalDate.now().dayOfWeek.value
+            val dayOfMonth = LocalDate.now().dayOfMonth
+            val dayTodos = todos.filter {
+                it.todoCycleType == DAILY && it.startTime != null && it.endTime != null && it.endTime!! < it.startTime
+            }.toMutableList()
+            val todayTodos = todos.filter {
+                // 오늘 또는 어제 할 일 필터
+                when (it.todoCycleType) {
+                    WEEKLY -> weeklyAndMonthlyTodoFilterCondition(it, dayOfWeek, dayTodos)
+                    MONTHLY -> weeklyAndMonthlyTodoFilterCondition(it, dayOfMonth, dayTodos)
+                    else -> true
+                }
+            }.toMutableList()
+            todayTodos.addAll(dayTodos)
+
+            // 미완료, 완료 한 리스트에 합치기
+            val completedTodoIds = completedTodos.map { it.todoId }
+            val uncompletedTodos = todos.filter { todo ->
+                if (completedTodoIds.contains(todo.todoId)) {
+                    val todoRecord = completedTodos.filter { it.todoId == it.todoId }
+                    if (todo.isToday) {
+                        todoRecord.firstOrNull { it.completedDate == LocalDate.now() } == null
+                    } else if (!todo.isToday) {
+                        todoRecord.firstOrNull { it.completedDate == LocalDate.now().minusDays(1) } == null
+                    } else true
+                } else true
+            }.map { it.convertToUncompletedTodoRecord() }
+            completedTodos.addAll(uncompletedTodos)
+        }
+        return completedTodos
+    }
+
+    // 주간, 월간 할 일 필터 조건
+    fun weeklyAndMonthlyTodoFilterCondition(
+        todo: WorkplaceTodoDTO,
+        dayOf: Int,
+        dayTodos: MutableList<WorkplaceTodoDTO>
+    ): Boolean {
+        return when {
+            todo.todoDays?.substring(dayOf - 2, dayOf) == "11" &&
+                    todo.startTime != null && todo.endTime != null && todo.endTime!! < todo.startTime -> {
+                dayTodos.add(todo.copyWithIdToday(false))
+                true
+            }
+            todo.todoDays?.substring(dayOf - 1, dayOf) == "1" -> {
+                todo.isToday = true
+                true
+            }
+            todo.todoDays?.substring(dayOf - 2, dayOf - 1) == "1" -> {
+                todo.isToday = false
+                todo.startTime != null && todo.endTime != null && todo.endTime!! < todo.startTime
+            }
+            else -> false
+        }
     }
 
     /** 오늘 해야할 할일 개수 조회 **/
@@ -83,16 +178,18 @@ class WorkplaceRepository : RepositorySupport() {
     }
 
     /** 현재 근무자 조회 **/
-    fun findWorkplaceCurrentEmployees(workplaceId: Long): List<CurrentEmployeeResponseDTO> {
+    fun findWorkplaceCurrentEmployees(workplaceId: Long): MutableList<WorkRecordResponseDTO> {
         return select(
-            QCurrentEmployeeResponseDTO(
+            QWorkRecordResponseDTO(
                 QEmployeeMemberSimpleResponseDTO(
+                    employeeMember.member.id,
                     employeeMember.id,
                     employeeMember.name,
                     employeeMember.imageUrl,
                     employeeRank.name
                 ),
-                workRecord.officeGoingTime
+                workRecord.officeGoingTime,
+                workRecord.quittingTime
             )
         )
             .from(workRecord)
@@ -131,6 +228,7 @@ class WorkplaceRepository : RepositorySupport() {
                 workplaceRequest.requestResult,
                 QEmployeeMemberSimpleResponseDTO(
                     employeeMember.member.id,
+                    employeeMember.id,
                     employeeMember.name,
                     employeeMember.imageUrl,
                     employeeRank.name
@@ -153,6 +251,7 @@ class WorkplaceRepository : RepositorySupport() {
                 workplaceRequest.requestContent,
                 workplaceRequest.requestResult,
                 QEmployeeMemberSimpleResponseDTO(
+                    employeeMember.member.id,
                     employeeMember.id,
                     employeeMember.name,
                     employeeMember.imageUrl,
@@ -169,19 +268,104 @@ class WorkplaceRepository : RepositorySupport() {
             .where(workplaceRequest.id.eq(requestId))
             .fetchFirst()
     }
+
+    /** 일터 할 일 기록 상세 조회 **/
+    fun findWorkplaceTodoRecordDetail(todoRecordId: Long?, todoId: Long): WorkplaceTodoRecordDetailResponseDTO {
+        // 할 일 상세 조회
+        val todoDetail = select(
+            QWorkplaceTodoDetailResponseDTO(
+                todo.id,
+                todo.title,
+                todo.startTime,
+                todo.endTime,
+                todo.todoCycleType,
+                todo.todoDays
+            )
+        ).from(todo)
+            .where(todo.id.eq(todoId))
+            .fetchFirst()
+
+        // 할 일 담당 직원들 조회
+        val chargeEmployee = select(
+            QEmployeeMemberSimpleResponseDTO(
+                employeeMember.member.id,
+                employeeMember.id,
+                employeeMember.name,
+                employeeMember.imageUrl,
+                employeeRank.name
+            )
+        ).from(employeeTodo)
+            .innerJoin(employeeTodo.employeeMember, employeeMember)
+            .innerJoin(employeeMember.employeeRank, employeeRank)
+            .where(employeeTodo.todo.id.eq(todoDetail.todoId))
+            .fetch()
+
+        todoDetail.chargeEmployee = chargeEmployee
+
+        val todoRecordDetail = if (todoRecordId != null) {
+            // 할 일 기록 있으면 기록 상세 조회
+            select(
+                QWorkplaceTodoRecordDetailResponseDTO(
+                    todoRecord.id,
+                    todoRecord.completedTime,
+                    todoRecord.todoDate,
+                    todoRecord.memo
+                )
+            ).from(todoRecord)
+                .where(todoRecord.id.eq(todoRecordId))
+                .fetchFirst() ?: WorkplaceTodoRecordDetailResponseDTO()
+        } else {
+            WorkplaceTodoRecordDetailResponseDTO()
+        }
+        todoRecordDetail.todo = todoDetail
+
+        return todoRecordDetail
+    }
+
+    /** 직원 조회 **/
+    fun finEmployeesByWorkplace(
+        workplaceId: Long,
+        excludeEmployeeIds: List<Long>,
+        date: LocalDate? = LocalDate.now()
+    ): List<EmployeeMemberSimpleResponseDTO> {
+        // 오늘 출근인 직원 전체 조회
+        select(
+            QWorkTodayEmployeeDTO(
+                QEmployeeMemberSimpleResponseDTO(
+                    employeeMember.member.id,
+                    employeeMember.id,
+                    employeeMember.name,
+                    employeeMember.imageUrl,
+                    employeeRank.name
+                ),
+                employeeRank.workingDay
+            )
+        )
+            .from(employeeMember)
+            .innerJoin(employeeMember.employeeRank, employeeRank)
+            .where(employeeMember.workplace.id.eq(workplaceId), employeeMember.createDate. loe(date?.atStartOfDay()))
+            .fetch()
+
+
+        return select(
+            QEmployeeMemberSimpleResponseDTO(
+                employeeMember.member.id,
+                employeeMember.id,
+                employeeMember.name,
+                employeeMember.imageUrl,
+                employeeRank.name
+            )
+        )
+            .from(employeeMember)
+            .innerJoin(employeeMember.employeeRank, employeeRank)
+            .where(
+                employeeMember.workplace.id.eq(workplaceId),
+                employeeMember.id.notIn(excludeEmployeeIds)
+            )
+            .fetch()
+
+
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
