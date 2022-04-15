@@ -31,7 +31,16 @@ class WorkplaceRepository : RepositorySupport() {
     }
 
     /** 오늘 완료한 할 일 조회 **/
-    fun findWorkplaceTodayCompletedTodo(workplaceId: Long): List<CompletedTodoResponseDTO> {
+    fun findWorkplaceTodoRecordByDate(
+        workplaceId: Long,
+        isComplete: Boolean,
+        date: LocalDate = LocalDate.now()
+    ): List<CompletedTodoResponseDTO> {
+        // todo 완료되지 않은 todo 는 어떻게 보여줄지
+        // 1. 매일 자정마다 모든 todoResult 를 완료되지 않음 상태로 생성
+        // 2. 매번 조회 시 일터별 todo 조회 후 완료한것들 조회해서 미완료와 분류
+        // 24시 넘어가는 todo 의 경우 1번이 조회하기 유리할 듯?
+        // test 를 진행해 봅시다~~
         return select(
             QCompletedTodoResponseDTO(
                 todoRecord.id,
@@ -50,8 +59,10 @@ class WorkplaceRepository : RepositorySupport() {
             .innerJoin(employeeMember.employeeRank, employeeRank)
             .where(
                 todoRecord.workplace.id.eq(workplaceId),
-                todoRecord.todoDate.eq(LocalDate.now())
-            )
+                todoRecord.todoDate.eq(date)
+            ).apply {
+                if(isComplete) todoRecord
+            }
             .fetch()
     }
 
@@ -159,3 +170,18 @@ class WorkplaceRepository : RepositorySupport() {
             .fetchFirst()
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

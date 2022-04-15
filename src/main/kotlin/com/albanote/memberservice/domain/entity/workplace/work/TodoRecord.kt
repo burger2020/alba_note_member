@@ -24,6 +24,9 @@ class TodoRecord(
     @ManyToOne(fetch = FetchType.LAZY)
     var workplace: Workplace? = null,
 
+    @OneToMany(mappedBy = "todoRecord")
+    var todoRecordImages: MutableList<TodoRecordImage> = mutableListOf(),
+
     // 근무 날짜
     val todoDate: LocalDate? = null,
     // 완료 시간

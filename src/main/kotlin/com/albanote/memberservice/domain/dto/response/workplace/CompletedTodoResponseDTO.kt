@@ -12,5 +12,6 @@ class CompletedTodoResponseDTO @QueryProjection constructor(
     val completedTime: LocalTime,
     val completedMember: EmployeeMemberSimpleResponseDTO
 ) {
+    val imageUrls: List<String> = listOf()
 
 }
