@@ -1,6 +1,7 @@
 package com.albanote.memberservice.domain.entity.member
 
 import com.albanote.memberservice.domain.entity.BaseTimeEntity
+import com.albanote.memberservice.domain.entity.workplace.MemberRepWorkplace
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import javax.persistence.*
 
@@ -30,5 +31,9 @@ class Member(
 
     @JoinColumn(name = "fcm_token_id")
     @OneToOne(fetch = FetchType.LAZY)
-    val fcmToken: MemberFcmToken? = null
+    val fcmToken: MemberFcmToken? = null,
+
+    @JoinColumn(name = "member_rep_workplace_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    val repWorkplace: MemberRepWorkplace? = null
 ) : BaseTimeEntity(id)

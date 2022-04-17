@@ -2,6 +2,7 @@ package com.albanote.memberservice.service.member
 
 import com.albanote.memberservice.domain.dto.response.MemberLoginResponseDTO
 import com.albanote.memberservice.domain.entity.member.*
+import com.albanote.memberservice.domain.entity.workplace.MemberRepWorkplace
 import com.albanote.memberservice.repository.member.MemberRepository
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
@@ -25,6 +26,8 @@ class MemberService(
         if (!isExist) {
             val member = Member(socialId = socialId, socialLoginType = socialLoginType, osType = osType, pwd = pwd)
             em.persist(member)
+            val memberRepWorkplace = MemberRepWorkplace(member = member)
+            em.persist(memberRepWorkplace)
         }
     }
 

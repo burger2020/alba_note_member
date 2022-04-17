@@ -26,6 +26,8 @@ class EmployeeRank(
     @Column(columnDefinition = "TEXT", nullable = false)
     val name: String? = null,
 
+    val isBoss: Boolean? = null,
+
     // 급여 지급 방식
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "TEXT", nullable = true)
@@ -70,7 +72,7 @@ class EmployeeRank(
     // 급여 정산일  월 ~ 일 -> 7, 1일 까지 -> 1
     var settlementDate: Int? = null,
 
-    // 근무 지급 방식
+    // 근무 기록 방식
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "TEXT", nullable = true)
     var workRecordType: WorkRecordType? = null,

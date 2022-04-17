@@ -8,7 +8,7 @@ import javax.persistence.*
  * 요일별 출퇴근 시간
  * */
 @Entity
-@AttributeOverride(name = "id", column = Column(name = "employee_rank_id"))
+@AttributeOverride(name = "id", column = Column(name = "commute_time_by_day_of_week_id"))
 class CommuteTimeByDayOfWeek(
     id: Long? = null,
 

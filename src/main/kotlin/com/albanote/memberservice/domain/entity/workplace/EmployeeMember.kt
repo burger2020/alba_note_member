@@ -43,8 +43,4 @@ class EmployeeMember(
     val workRecords: MutableList<WorkRecord> = mutableListOf()
 ) : BaseTimeEntity(id) {
 
-    fun setBossRank(workplaceId: Long) {
-        val bossName = "사장님"
-        employeeRank = EmployeeRank(workplace = Workplace(workplaceId), name = bossName)
-    }
 }
