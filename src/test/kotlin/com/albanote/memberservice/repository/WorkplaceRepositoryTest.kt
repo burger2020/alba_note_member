@@ -9,7 +9,7 @@ import java.time.LocalDate
 @SpringBootTest
 internal class WorkplaceRepositoryTest {
     @Autowired
-    lateinit var workplaceRepository: WorkplaceRepository
+    lateinit var workplaceRepository: BossWorkplaceRepository
 
     @Test
     fun sadf() {

@@ -7,7 +7,8 @@ import com.querydsl.core.annotations.QueryProjection
  * */
 class WorkplaceInfoOfBossResponseDTO @QueryProjection constructor(
     val workplaceId: Long,
-    val workplaceTitle: String
+    val workplaceTitle: String,
+    var workplaceImageUrl: String?
 ) {
     var workplaceRequest: MutableList<WorkplaceRequestSimpleResponseDTO> = mutableListOf()
     var currentEmployees: MutableList<WorkRecordResponseDTO> = mutableListOf()

@@ -17,6 +17,10 @@ class Todo(
     @CreatedDate
     var createDate: LocalDate? = null,
 
+    // 사용 중지 날짜
+    @CreatedDate
+    var deprecatedDate: LocalDate? = null,
+
     @JoinColumn(name = "workplace_id")
     @ManyToOne(fetch = FetchType.LAZY)
     var workplace: Workplace? = null,
@@ -28,6 +32,7 @@ class Todo(
     var description: String? = null,
 
 
+    // 담당자
     @OneToMany(mappedBy = "todo")
     var chargeEmployee: MutableList<EmployeeTodo> = mutableListOf(),
 
@@ -50,7 +55,7 @@ class Todo(
     // 일일 - null / 주간 - (SMTWTFS) ex) 화, 일 -> _1____1 / 월간 1일, 10일, 15일, 30일 -> 1________1____1_______________1_
     @Column(columnDefinition = "TEXT", nullable = true)
     var todoDays: String? = null,
-) : BaseEntity(id){
-    @JsonIgnore
-    var isToday = true
+) : BaseEntity(id) {
+
+
 }

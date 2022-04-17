@@ -2,12 +2,16 @@ package com.albanote.memberservice.domain.entity.workplace
 
 import com.albanote.memberservice.domain.entity.BaseTimeEntity
 import com.albanote.memberservice.domain.entity.workplace.work.*
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
 @AttributeOverride(name = "id", column = Column(name = "workplace_id"))
 class Workplace(
     id: Long? = null,
+
+    // 비활성화 시간
+    val deprecatedDate: LocalDateTime? = null,
     // 일터 이름
     @Column(columnDefinition = "TEXT", nullable = false)
     val title: String? = null,
@@ -60,8 +64,8 @@ class Workplace(
     @OneToMany(mappedBy = "workplace")
     val workplaceRequests: MutableList<WorkplaceRequest> = mutableListOf(),
 
-    var isRep: Boolean? = null
+    @Column(columnDefinition = "TEXT", nullable = true)
+    val imageUrl: String? = null
 ) : BaseTimeEntity(id) {
-
 
 }
