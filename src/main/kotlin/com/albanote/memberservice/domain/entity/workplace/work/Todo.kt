@@ -36,8 +36,8 @@ class Todo(
     @OneToMany(mappedBy = "todo")
     var chargeEmployee: MutableList<EmployeeTodo> = mutableListOf(),
 
-    @Column(columnDefinition = "TEXT", nullable = true)
-    var referenceImageUrl: String? = null,
+    @OneToMany(mappedBy = "todo")
+    var referenceImages: MutableList<TodoReferenceImage> = mutableListOf(),
 
     // 인증사진 필수 여부
     var isAuthenticationImageRequire: Boolean? = null,

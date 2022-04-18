@@ -14,28 +14,28 @@ import org.springframework.data.support.PageableExecutionUtils
 
 open class RepositorySupport {
     @Autowired
-    lateinit var queryFactory: JPAQueryFactory
+    protected lateinit var queryFactory: JPAQueryFactory
 
-    fun <T> select(expr: Expression<T>): JPAQuery<T> = queryFactory.select(expr)
-    fun <T> selectFrom(path: EntityPath<T>): JPAQuery<T> = queryFactory.selectFrom(path)
-    fun <T> delete(path: EntityPath<T>): JPADeleteClause = queryFactory.delete(path)
-    fun <T> update(path: EntityPath<T>): JPAUpdateClause = queryFactory.update(path)
+    protected fun <T> select(expr: Expression<T>): JPAQuery<T> = queryFactory.select(expr)
+    protected fun <T> selectFrom(path: EntityPath<T>): JPAQuery<T> = queryFactory.selectFrom(path)
+    protected fun <T> delete(path: EntityPath<T>): JPADeleteClause = queryFactory.delete(path)
+    protected fun <T> update(path: EntityPath<T>): JPAUpdateClause = queryFactory.update(path)
 
-    fun <T> JPAQuery<T>.pageableOption(pageable: Pageable): JPAQuery<T> {
+    protected fun <T> JPAQuery<T>.pageableOption(pageable: Pageable): JPAQuery<T> {
         this.offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
         return this
     }
 
     // content 와 count 쿼리가 같을경우 -> count 쿼리만 받고 pageOption 만 추가해서 페이지 번환
-    fun <T> JPAQuery<T>.pageableCountUtilAndFetch(pageable: Pageable): Page<T> {
+    protected fun <T> JPAQuery<T>.pageableCountUtilAndFetch(pageable: Pageable): Page<T> {
         val content = this.pageableOption(pageable).fetch()
         return PageableExecutionUtils.getPage(content, pageable) { this.fetchCount() }
     }
 
     // content 와 count 쿼리가 다를경우 -> count 쿼리와 content 쿼리 다 받고 pageOption 만 추가해서 페이지 번환
-    fun <T, F> JPAQuery<T>.pageableCountUtilAndFetch(pageable: Pageable, func: () -> JPAQuery<F>): Page<T> {
+    protected fun <T, F> JPAQuery<T>.pageableCountUtilAndFetch(pageable: Pageable, func: () -> JPAQuery<F>): Page<T> {
         val content = this.pageableOption(pageable).fetch()
-        return PageableExecutionUtils.getPage(content, pageable) { func.invoke().fetchCount()}
+        return PageableExecutionUtils.getPage(content, pageable) { func.invoke().fetchCount() }
     }
 }

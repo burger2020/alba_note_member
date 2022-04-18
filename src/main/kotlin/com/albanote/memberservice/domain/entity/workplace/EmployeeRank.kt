@@ -4,6 +4,7 @@ import com.albanote.memberservice.domain.entity.BaseEntity
 import com.albanote.memberservice.domain.entity.workplace.work.PayrollCycleType
 import com.albanote.memberservice.domain.entity.workplace.work.PayrollType
 import com.albanote.memberservice.domain.entity.workplace.work.WorkRecordType
+import java.time.LocalDate
 import java.time.LocalTime
 import javax.persistence.*
 
@@ -48,8 +49,8 @@ class EmployeeRank(
     var ordinaryHourlyWage: Int? = null,
     // 시급 계산 단위 (분)
     val hourlyWageCalculationUnit: Int? = null,
-    // 시급 계산 반올림,버림
-    val isHourlyWageCalculationRound: Boolean? = null,
+//    // 시급 계산 반올림,버림
+//    val isHourlyWageCalculationRound: Boolean? = null,
 
     // 출퇴근 시간
     val officeGoingTime: LocalTime? = null,
@@ -62,14 +63,14 @@ class EmployeeRank(
     @Column(columnDefinition = "TEXT", nullable = true)
     val workingDay: String? = null,
 
-    // 유급 요일 (MTWTFSS) 출근하는 날 _ ex) 일 유급 휴일 -> ______1
+    // 유급 요일 1 (MTWTFSS) 출근하는 날 _ ex) 일 유급 휴일 -> ______1
     @Column(columnDefinition = "TEXT", nullable = true)
     val paidHoliday: String? = null,
 
-    // 급여일 수요일 -> 3, 5일 -> 5
+    // 급여일 수요일 -> 3, 5일 -> 5, 말일 -> 32
     var payday: Int? = null,
 
-    // 급여 정산일  월 ~ 일 -> 7, 1일 까지 -> 1
+    // 급여 정산 기준일  월 ~ 일 -> 7, 1일 까지 -> 1
     var settlementDate: Int? = null,
 
     // 근무 기록 방식
@@ -80,15 +81,18 @@ class EmployeeRank(
     // 출퇴근 시간 요일별로 다른지 여부
     var isCommuteTimeVaryByDayOfWeek: Boolean? = null,
     @OneToMany(mappedBy = "dayOfWeek")
-    val commuteTimeByDateOfWeek: MutableList<CommuteTimeByDayOfWeek> = mutableListOf(),
+    var commuteTimeByDayOfWeek: MutableList<CommuteTimeByDayOfWeek> = mutableListOf(),
 
     // 근무 승인 필수 여부
     var isWorkApprovalRequirement: Boolean? = null,
     // 야간 수당
     var isNightAllowance: Boolean? = null,
+    var nightAllowanceExtraMultiples: Float? = null,
     // 초과 수당
     var isOvertimeAllowance: Boolean? = null,
+    var overtimeAllowanceExtraMultiples: Float? = null,
     // 휴일 수당
     var isHolidayAllowance: Boolean? = null,
+    var holidayAllowanceExtraMultiples: Float? = null
 ) : BaseEntity(id) {
 }

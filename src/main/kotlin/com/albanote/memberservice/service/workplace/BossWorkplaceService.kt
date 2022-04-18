@@ -1,22 +1,20 @@
 package com.albanote.memberservice.service.workplace
 
-import com.albanote.memberservice.domain.dto.request.workplace.ChangeRepWorkplaceRequestDTO
-import com.albanote.memberservice.domain.dto.request.workplace.CreateWorkplaceRequestDTO
-import com.albanote.memberservice.domain.dto.request.workplace.CreateWorkplaceTodoRequestDTO
-import com.albanote.memberservice.domain.dto.request.workplace.ModifyWorkplaceTodoRequestDTO
+import com.albanote.memberservice.domain.dto.request.workplace.*
 import com.albanote.memberservice.domain.dto.response.workplace.*
 import com.albanote.memberservice.domain.entity.member.Member
-import com.albanote.memberservice.domain.entity.workplace.EmployeeMember
-import com.albanote.memberservice.domain.entity.workplace.EmployeeRank
-import com.albanote.memberservice.domain.entity.workplace.Workplace
+import com.albanote.memberservice.domain.entity.workplace.*
 import com.albanote.memberservice.domain.entity.workplace.work.EmployeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.Todo
-import com.albanote.memberservice.repository.BossWorkplaceRepository
+import com.albanote.memberservice.domain.entity.workplace.work.TodoReferenceImage
+import com.albanote.memberservice.domain.entity.workplace.work.WorkType
+import com.albanote.memberservice.repository.workplace.BossWorkplaceRepository
 import com.albanote.memberservice.service.S3Service
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 import javax.persistence.EntityManager
 
@@ -108,16 +106,29 @@ class BossWorkplaceService(
 
         // 그 외 직원
         val currentEmployeeIds = currentEmployees.map { it.currentEmployee.memberId }
-        val employees = workplaceRepository.finEmployeesByWorkplace(workplaceId, currentEmployeeIds)
-        //todo 직원 조회 방식 변경 필요 -> 직책 벙보 변경 또는 직원 직책 변경될 경우 어떻게 할 건지...
+        val employees = workplaceRepository.findEmployeesByWorkplace(workplaceId, currentEmployeeIds)
 
-        currentEmployees.addAll(employees.map { WorkRecordResponseDTO(it, null, null) })
+        currentEmployees.addAll(employees.map { WorkRecordResponseDTO(it, null, null, WorkType.BEFORE_WORK) })
 
         currentEmployees.forEach {
             it.currentEmployee.imageUrl = s3service.convertCloudFrontUrl(it.currentEmployee.imageUrl)
         }
 
         return currentEmployees
+    }
+
+    /** 일별 근무 기록 조회**/
+    fun getWorkRecordByDate(workplaceId: Long, date: LocalDate): MutableList<WorkRecordResponseDTO> {
+        return if (date == LocalDate.now())
+            getWorkRecordList(workplaceId)
+        else {
+            workplaceRepository.findWorkplaceCurrentEmployees(workplaceId)
+        }
+    }
+
+    /** 근무 기록 상세 조회 **/
+    fun getWorkRecordDetail(workRecordId: Long) {
+        workplaceRepository.findWorkRecordDetail(workRecordId)
     }
 
     /** 일터 직원 간단한 정보 조회 **/
@@ -148,6 +159,9 @@ class BossWorkplaceService(
             phoneNumber = dto.bossEmployeePhoneNumber
         )
         em.persist(bossEmployeeMember)
+        // 일터 사진 정보 생성
+        val workplaceImage = WorkplaceImage(workplace = workplace, imageUrl = null)
+        em.persist(workplaceImage)
 
         // 대표일터 설정안 되어 있으면 대표일터 설정
         val isExistRepWorkplace = workplaceRepository.findRepWorkplaceByMember(dto.bossMemberId) != null
@@ -155,6 +169,30 @@ class BossWorkplaceService(
             putChangeRepWorkplace(ChangeRepWorkplaceRequestDTO(workplace.id!!, dto.bossMemberId))
 
         return workplace.id
+    }
+
+    /** 일터 사진 등록 **/
+    @Transactional
+    fun postCreateWorkplaceImage(workplaceId: Long, file: MultipartFile): String {
+        val imageUrl = s3service.imageUpload(file, workplaceId, s3service.workplaceImage)
+        val isExistImageUrl = workplaceRepository.checkExistWorkplaceImageUrl(workplaceId)
+        if (!isExistImageUrl) {
+            workplaceRepository.updateWorkplaceImage(workplaceId, imageUrl)
+        }
+
+        return imageUrl
+    }
+
+    /** 직책 생성 **/
+    @Transactional
+    fun postCreateEmployeeRank(dto: CreateEmployeeRankResponseDTO): Long? {
+        val employeeRank = dto.convertToEntity()
+        em.persist(employeeRank)
+        dto.commuteTimeByDateOfWeek.forEach {
+            em.persist(it.convertToEntity(employeeRank))
+        }
+
+        return employeeRank.id
     }
 
     /** 할일 생성 **/
@@ -184,6 +222,16 @@ class BossWorkplaceService(
         return todo.id
     }
 
+    /** 할 일 참조 사진 등록 **/
+    @Transactional
+    fun postCreateTodoReferenceImage(todoId: Long, file: MultipartFile): String {
+        val imageUrl = s3service.imageUpload(file, todoId, s3service.workplaceTodoImage)
+        val todoImage = TodoReferenceImage(todo = Todo(todoId), imageUrl = imageUrl)
+        em.persist(todoImage)
+
+        return imageUrl
+    }
+
     /************************ put **************************/
 
     /** 대표 일터 변경 **/
@@ -198,6 +246,29 @@ class BossWorkplaceService(
         workplaceRepository.deleteTodoToDeprecated(dto.todoIdToModify)
 
         return postCreateTodo(dto.convertToCreateDTO())
+    }
+
+    /** 직책 정보 변경 **/
+    @Transactional
+    fun putModifyEmployeeRank(dto: ModifyEmployeeRankResponseDTO): Long? {
+        val modifiedRank = dto.convertToEntity()
+        em.persist(modifiedRank)
+        workplaceRepository.updateMembersEmployeeRank(modifiedRank, dto.rankId)
+        val employeeIds = workplaceRepository.findEmployeeIdByRank(dto.rankId)
+        val employeeMemberRanks = employeeIds.map {
+            EmployeeMemberRank(
+                createdDate = LocalDate.now(),
+                employeeMember = EmployeeMember(),
+                employeeRank = modifiedRank
+            )
+        }
+        employeeMemberRanks.forEach {
+            em.persist(it)
+        }
+        dto.commuteTimeByDateOfWeek.forEach {
+            em.persist(it.convertToEntity(modifiedRank))
+        }
+        return modifiedRank.id
     }
 
     /****************** delete ****************/
@@ -217,5 +288,12 @@ class BossWorkplaceService(
     @Transactional
     fun deleteDeleteTodo(todoId: Long): Boolean {
         return workplaceRepository.deleteTodoToDeprecated(todoId)
+    }
+
+    /** 직책 정보 삭제 **/
+    @Transactional
+    fun deleteDeleteEmployeeRank(rankId: Long): Boolean {
+        //todo 직책에 등록된 직원 없어야 삭제가능하도록?
+        return workplaceRepository.deleteEmployeeRankToDeprecated(rankId)
     }
 }

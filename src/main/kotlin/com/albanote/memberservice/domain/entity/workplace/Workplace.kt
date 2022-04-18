@@ -64,8 +64,9 @@ class Workplace(
     @OneToMany(mappedBy = "workplace")
     val workplaceRequests: MutableList<WorkplaceRequest> = mutableListOf(),
 
-    @Column(columnDefinition = "TEXT", nullable = true)
-    val imageUrl: String? = null
+    @JoinColumn(name = "workplace_image_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    val workplaceImage: WorkplaceImage? = null
 ) : BaseTimeEntity(id) {
 
 }
