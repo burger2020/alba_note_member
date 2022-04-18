@@ -63,9 +63,9 @@ class S3Service {
     private val zipFileType = "zip"
     private val pdfFileType = "pdf"
 
-    val chattingRoomImage = "chatting_room_image"
-    val chattingMessageFile = "chatting_message_file"
     val memberProfileImage = "member_profile_image"
+    val workplaceImage = "workplace_image"
+    val workplaceTodoImage = "workplace_todo_image"
 
     fun imageUpload(
         file: MultipartFile,

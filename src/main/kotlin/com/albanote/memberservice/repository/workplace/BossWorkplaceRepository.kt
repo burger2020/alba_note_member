@@ -1,14 +1,17 @@
-package com.albanote.memberservice.repository
+package com.albanote.memberservice.repository.workplace
 
-import com.albanote.memberservice.domain.dto.query.workplace.QWorkTodayEmployeeDTO
 import com.albanote.memberservice.domain.dto.query.workplace.QWorkplaceTodoDTO
 import com.albanote.memberservice.domain.dto.query.workplace.WorkplaceTodoDTO
 import com.albanote.memberservice.domain.dto.response.workplace.*
 import com.albanote.memberservice.domain.entity.member.QMember.member
+import com.albanote.memberservice.domain.entity.workplace.EmployeeRank
+import com.albanote.memberservice.domain.entity.workplace.QCommuteTimeByDayOfWeek.commuteTimeByDayOfWeek
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeMember.employeeMember
+import com.albanote.memberservice.domain.entity.workplace.QEmployeeMemberRank.employeeMemberRank
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeRank.employeeRank
 import com.albanote.memberservice.domain.entity.workplace.QMemberRepWorkplace.memberRepWorkplace
 import com.albanote.memberservice.domain.entity.workplace.QWorkplace.workplace
+import com.albanote.memberservice.domain.entity.workplace.QWorkplaceImage.workplaceImage
 import com.albanote.memberservice.domain.entity.workplace.Workplace
 import com.albanote.memberservice.domain.entity.workplace.work.QEmployeeTodo.employeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.QTodo.todo
@@ -16,6 +19,8 @@ import com.albanote.memberservice.domain.entity.workplace.work.QTodoRecord.todoR
 import com.albanote.memberservice.domain.entity.workplace.work.QWorkRecord.workRecord
 import com.albanote.memberservice.domain.entity.workplace.work.QWorkplaceRequest.workplaceRequest
 import com.albanote.memberservice.domain.entity.workplace.work.TodoCycleType.*
+import com.albanote.memberservice.repository.RepositorySupport
+import com.querydsl.core.types.dsl.Expressions
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -30,7 +35,7 @@ class BossWorkplaceRepository : RepositorySupport() {
             QWorkplaceInfoOfBossResponseDTO(
                 workplace.id,
                 workplace.title,
-                workplace.imageUrl
+                workplaceImage.imageUrl
             )
         ).apply {
             if (workplaceId == null) {
@@ -42,7 +47,9 @@ class BossWorkplaceRepository : RepositorySupport() {
                 from(workplace)
                     .where(workplace.id.eq(workplaceId))
             }
-        }.fetchFirst()
+        }
+            .innerJoin(workplace.workplaceImage, workplaceImage)
+            .fetchFirst()
     }
 
     /** 오늘 완료한 할 일 조회 **/
@@ -202,7 +209,8 @@ class BossWorkplaceRepository : RepositorySupport() {
                     employeeRank.name
                 ),
                 workRecord.officeGoingTime,
-                workRecord.quittingTime
+                workRecord.quittingTime,
+                workRecord.workType
             )
         )
             .from(workRecord)
@@ -211,27 +219,25 @@ class BossWorkplaceRepository : RepositorySupport() {
             .where(
                 workRecord.workplace.id.eq(workplaceId),
                 workRecord.workDate.eq(LocalDate.now()),
-                workRecord.officeGoingTime.isNotNull,
-                workRecord.quittingTime.isNull,
             ).fetch()
     }
 
     /** 일터 목록 조회 **/
     fun findWorkplaceListByMember(memberId: Long): List<WorkplaceListResponseDTO> {
-        val repWorkplaceId = select(workplace.id)
+        val repWorkplaceId = select(memberRepWorkplace.workplace.id)
             .from(memberRepWorkplace)
-            .innerJoin(memberRepWorkplace.workplace, workplace)
             .where(memberRepWorkplace.member.id.eq(memberId))
             .fetchFirst()
+
         val workplaces = select(
             QWorkplaceListResponseDTO(
                 workplace.id,
                 workplace.title,
-                workplace.imageUrl
+                workplaceImage.imageUrl
             )
-        )
-            .from(employeeMember)
+        ).from(employeeMember)
             .innerJoin(employeeMember.workplace, workplace)
+            .innerJoin(workplace.workplaceImage, workplaceImage)
             .where(employeeMember.member.id.eq(memberId))
             .fetch()
         workplaces.forEach {
@@ -345,30 +351,12 @@ class BossWorkplaceRepository : RepositorySupport() {
     }
 
     /** 직원 조회 **/
-    fun finEmployeesByWorkplace(
+    fun findEmployeesByWorkplace(
         workplaceId: Long,
         excludeEmployeeIds: List<Long>,
         date: LocalDate? = LocalDate.now()
     ): List<EmployeeMemberSimpleResponseDTO> {
         // 선택 날짜 출근인 직원 전체 조회
-        select(
-            QWorkTodayEmployeeDTO(
-                QEmployeeMemberSimpleResponseDTO(
-                    employeeMember.member.id,
-                    employeeMember.id,
-                    employeeMember.name,
-                    employeeMember.imageUrl,
-                    employeeRank.name
-                ),
-                employeeRank.workingDay
-            )
-        )
-            .from(employeeMember)
-            .innerJoin(employeeMember.employeeRank, employeeRank)
-            .where(employeeMember.workplace.id.eq(workplaceId), employeeMember.createDate.loe(date?.atStartOfDay()))
-            .fetch()
-
-
         return select(
             QEmployeeMemberSimpleResponseDTO(
                 employeeMember.member.id,
@@ -425,6 +413,37 @@ class BossWorkplaceRepository : RepositorySupport() {
             .fetchFirst() == true
     }
 
+    /** 일터 이미지 등록되어있는지 확인 **/
+    fun checkExistWorkplaceImageUrl(workplaceId: Long): Boolean {
+        return select(workplaceImage.imageUrl)
+            .from(workplaceImage)
+            .where(workplaceImage.workplace.id.eq(workplaceId))
+            .fetchFirst() != null
+    }
+
+    /** 직급별 직원 조회 **/
+    fun findEmployeeIdByRank(previousRankId: Long): List<Long> {
+        return select(employeeMember.id)
+            .from(employeeMember)
+            .where(employeeMember.employeeRank.id.eq(previousRankId))
+            .fetch()
+    }
+
+    /** 근무 기록 상세 조회 **/
+    fun findWorkRecordDetail(workRecordId: Long) {
+        //todo 근무 상세 기록 ㄲㄲㄲㄱ
+        select(
+            QWorkRecordDetailResponseDTO(
+                Expressions.asNumber(workRecordId)
+            )
+        )
+            .from(workRecord)
+            .innerJoin(workRecord.employeeRankMember, employeeMemberRank)
+            .innerJoin(employeeMemberRank.employeeRank, employeeRank)
+            .where(workRecord.id.eq(workRecordId))
+            .fetchFirst()
+    }
+
     /************************ update **************************/
 
     /** 대표 일터 변경 **/
@@ -434,6 +453,23 @@ class BossWorkplaceRepository : RepositorySupport() {
             .where(memberRepWorkplace.member.id.eq(memberId))
             .execute() == 1L
     }
+
+    /** 일터 사진 변경 **/
+    fun updateWorkplaceImage(workplaceId: Long, imageUrl: String): Boolean {
+        return update(workplaceImage)
+            .set(workplaceImage.imageUrl, imageUrl)
+            .where(workplaceImage.workplace.id.eq(workplaceId))
+            .execute() == 1L
+    }
+
+    /** 직책 정보 변경 -> 멤버 직책 변경 **/
+    fun updateMembersEmployeeRank(modifiedRank: EmployeeRank, rankId: Long) {
+        update(employeeMemberRank)
+            .set(employeeMemberRank.deprecatedDate, LocalDate.now())
+            .where(employeeMemberRank.employeeRank.id.eq(rankId))
+            .execute()
+    }
+
 
     /************************ delete **************************/
 
@@ -451,6 +487,21 @@ class BossWorkplaceRepository : RepositorySupport() {
             .where(todo.id.eq(todoIdToModify))
             .set(todo.deprecatedDate, LocalDate.now())
             .execute() == 1L
+    }
+
+    /** 직책 비활성화 **/
+    fun deleteEmployeeRankToDeprecated(rankId: Long?): Boolean {
+        return update(employeeRank)
+//            .set(employeeRank.deprecatedDate, LocalDate.now())
+            .where(employeeRank.id.eq(rankId))
+            .execute() == 1L
+    }
+
+    /** 해당 직급의 요일별 출퇴근시간 삭제  **/
+    fun deleteCommuteTimeByDayOfWork(rankId: Long?) {
+        delete(commuteTimeByDayOfWeek)
+            .where(commuteTimeByDayOfWeek.employeeRank.id.eq(rankId))
+            .execute()
     }
 }
 

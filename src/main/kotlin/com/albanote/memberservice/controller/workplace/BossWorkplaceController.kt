@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("/workplace")
@@ -105,6 +107,22 @@ class BossWorkplaceController(
         return ResponseEntity.ok(employees)
     }
 
+    /** 일별 근무 기록 조회 **/
+    @GetMapping("/workRecordByDate")
+    fun getWorkRecordByDate(
+        @RequestParam workplaceId: Long,
+        @RequestParam date: LocalDate
+    ): ResponseEntity<MutableList<WorkRecordResponseDTO>> {
+        val workRecords = workplaceService.getWorkRecordByDate(workplaceId, date)
+
+        return ResponseEntity.ok(workRecords)
+    }
+
+    @GetMapping("/wrokRecordDetail")
+    fun getWorkRecordDetail(@RequestParam workRecordId: Long){
+        workplaceService.getWorkRecordDetail(workRecordId)
+    }
+
     /*********************   post   *********************/
 
     /** 일터 생성 **/
@@ -116,9 +134,22 @@ class BossWorkplaceController(
     }
 
     /** 일터 사진 등록 **/
-    @PostMapping("/createTodoReferenceImage")
-    fun postCreateWorkplaceImage(@RequestParam todoId: Long) {
-        //todo
+    @PostMapping("/createWorkplaceImage")
+    fun postCreateWorkplaceImage(
+        @RequestParam workplaceId: Long,
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<String> {
+        val imageUrl = workplaceService.postCreateWorkplaceImage(workplaceId, file)
+
+        return ResponseEntity.ok(imageUrl)
+    }
+
+    /** 직책 생성 **/
+    @PostMapping("/createEmployeeRank")
+    fun postCreateEmployeeRank(@RequestBody dto: CreateEmployeeRankResponseDTO): ResponseEntity<Long> {
+        val rankId = workplaceService.postCreateEmployeeRank(dto)
+
+        return ResponseEntity.ok(rankId)
     }
 
     /** 할 일 생성 **/
@@ -131,7 +162,11 @@ class BossWorkplaceController(
 
     /** 할 일 참조 사진 등록 **/
     @PostMapping("/createTodoReferenceImage")
-    fun postCreateTodoReferenceImage(@RequestParam todoId: Long) {
+    fun postCreateTodoReferenceImage(
+        @RequestParam workplaceId: Long,
+        @RequestParam("file") file: MultipartFile
+    ) {
+        workplaceService.postCreateTodoReferenceImage(workplaceId, file)
         //todo
     }
 
@@ -155,6 +190,14 @@ class BossWorkplaceController(
         return ResponseEntity.ok(todoId)
     }
 
+    /** 직책 정보 수정 **/
+    @PutMapping("/modifyEmployeeRank")
+    fun putModifyEmployeeRank(@RequestBody dto: ModifyEmployeeRankResponseDTO): ResponseEntity<Long> {
+        val rankId = workplaceService.putModifyEmployeeRank(dto)
+
+        return ResponseEntity.ok(rankId)
+    }
+
     /************************ delete **************************/
 
     /** 일터 비활성화 **/
@@ -169,6 +212,14 @@ class BossWorkplaceController(
     @DeleteMapping("/deleteTodo")
     fun deleteDeleteTodo(@RequestParam todoId: Long): ResponseEntity<Boolean> {
         val result = workplaceService.deleteDeleteTodo(todoId)
+
+        return ResponseEntity.ok(result)
+    }
+
+    /** 직책 삭제 **/
+    @DeleteMapping("/deleteEmployeeRank")
+    fun deleteDeleteEmployeeRank(@RequestParam rankId: Long): ResponseEntity<Boolean> {
+        val result = workplaceService.deleteDeleteEmployeeRank(rankId)
 
         return ResponseEntity.ok(result)
     }

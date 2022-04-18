@@ -7,10 +7,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import javax.persistence.EntityManager
 
-
+@EnableScheduling
 @SpringBootApplication
 //@SpringBootApplication(exclude= [DataSourceAutoConfiguration::class]) // db 연결 없이 실행 시
 @EnableJpaAuditing
