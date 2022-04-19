@@ -9,11 +9,11 @@ import java.io.IOException
 import org.springframework.boot.jackson.JsonComponent
 import com.fasterxml.jackson.databind.SerializerProvider
 
-@JsonComponent
-class LocalDateTimeSerializer : JsonSerializer<LocalDateTime?>() {
-    @Throws(IOException::class)
-    override fun serialize(value: LocalDateTime?, gen: JsonGenerator, serializers: SerializerProvider) {
-//        gen.writeNumber(value.atZone(ZoneId.systemDefault()).toEpochSecond());
-        gen.writeNumber(Timestamp.valueOf(value).time)
-    }
-}
+//@JsonComponent
+//class LocalDateTimeSerializer : JsonSerializer<LocalDateTime?>() {
+//    @Throws(IOException::class)
+//    override fun serialize(value: LocalDateTime?, gen: JsonGenerator, serializers: SerializerProvider) {
+////        gen.writeNumber(value.atZone(ZoneId.systemDefault()).toEpochSecond());
+//        gen.writeNumber(Timestamp.valueOf(value).time)
+//    }
+//}

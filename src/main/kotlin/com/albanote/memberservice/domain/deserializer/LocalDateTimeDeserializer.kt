@@ -10,13 +10,13 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
 
-@JsonComponent
-class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
-    @Throws(IOException::class, JsonProcessingException::class)
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): LocalDateTime {
-        return LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(p.longValue),
-            TimeZone.getDefault().toZoneId()
-        )
-    }
-}
+//@JsonComponent
+//class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime>() {
+//    @Throws(IOException::class, JsonProcessingException::class)
+//    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): LocalDateTime {
+//        return LocalDateTime.ofInstant(
+//            Instant.ofEpochMilli(p.longValue),
+//            TimeZone.getDefault().toZoneId()
+//        )
+//    }
+//}

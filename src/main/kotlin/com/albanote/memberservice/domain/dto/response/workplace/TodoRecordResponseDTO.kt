@@ -1,6 +1,5 @@
 package com.albanote.memberservice.domain.dto.response.workplace
 
-import com.albanote.memberservice.domain.dto.query.workplace.WorkplaceTodoDTO
 import com.querydsl.core.annotations.QueryProjection
 import java.time.LocalDate
 import java.time.LocalTime
