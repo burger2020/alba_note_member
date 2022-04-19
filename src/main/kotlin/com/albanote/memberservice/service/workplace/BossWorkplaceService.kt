@@ -8,6 +8,7 @@ import com.albanote.memberservice.domain.entity.workplace.work.EmployeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.Todo
 import com.albanote.memberservice.domain.entity.workplace.work.TodoReferenceImage
 import com.albanote.memberservice.domain.entity.workplace.work.WorkType
+import com.albanote.memberservice.error.exception.workplace.NotExistWorkplaceException
 import com.albanote.memberservice.error.exception.workplace.NotFoundWorkRecordException
 import com.albanote.memberservice.repository.workplace.BossWorkplaceRepository
 import com.albanote.memberservice.service.S3Service
@@ -29,7 +30,8 @@ class BossWorkplaceService(
 
     /** 홈화면 대표 일터 정보 조회 **/
     fun getWorkplaceInfo(memberId: Long, workplaceId: Long?): WorkplaceInfoOfBossResponseDTO {
-        val workplaceInfo = workplaceRepository.findMyWorkplaceInfo(memberId, workplaceId) ?: throw Exception("없는 일터")
+        val workplaceInfo = workplaceRepository.findMyWorkplaceInfo(memberId, workplaceId)
+            ?: throw NotExistWorkplaceException()
         workplaceInfo.workplaceImageUrl = s3service.convertCloudFrontUrl(workplaceInfo.workplaceImageUrl)
         val pageable = PageRequest.of(0, 10)
         val completedTodos =
