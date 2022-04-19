@@ -4,6 +4,7 @@ import com.albanote.memberservice.domain.entity.BaseTimeEntity
 import com.albanote.memberservice.domain.entity.member.Member
 import com.albanote.memberservice.domain.entity.workplace.work.EmployeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.WorkRecord
+import java.time.LocalDateTime
 import javax.persistence.*
 
 
@@ -11,6 +12,8 @@ import javax.persistence.*
 @AttributeOverride(name = "id", column = Column(name = "employee_member_id"))
 class EmployeeMember(
     id: Long? = null,
+
+    val leaveDate: LocalDateTime? = null,
 
     @JoinColumn(name = "member_id")
     @ManyToOne(fetch = FetchType.LAZY)

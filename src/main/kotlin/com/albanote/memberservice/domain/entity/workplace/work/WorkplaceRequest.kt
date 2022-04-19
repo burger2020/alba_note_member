@@ -46,6 +46,6 @@ class WorkplaceRequest(
 
     // 요청 결과
     @Column(nullable = true)
-    val requestResult: Boolean? = null
+    val isCompleted: Boolean? = null
 ) : BaseTimeEntity(id) {
 }

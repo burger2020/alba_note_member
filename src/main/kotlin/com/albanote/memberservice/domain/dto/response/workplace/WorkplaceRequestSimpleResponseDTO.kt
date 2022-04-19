@@ -10,6 +10,6 @@ class WorkplaceRequestSimpleResponseDTO @QueryProjection constructor(
     var requestId: Long,
     var createdDate: LocalDateTime,
     var requestType: WorkplaceRequestType,
-    var requestResult: Boolean?,
+    var isCompleted: Boolean?,
     var requestMember: EmployeeMemberSimpleResponseDTO
 )

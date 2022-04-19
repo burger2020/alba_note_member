@@ -19,6 +19,7 @@ import com.albanote.memberservice.domain.entity.workplace.work.QTodoRecord.todoR
 import com.albanote.memberservice.domain.entity.workplace.work.QWorkRecord.workRecord
 import com.albanote.memberservice.domain.entity.workplace.work.QWorkplaceRequest.workplaceRequest
 import com.albanote.memberservice.domain.entity.workplace.work.TodoCycleType.*
+import com.albanote.memberservice.domain.entity.workplace.work.WorkType
 import com.albanote.memberservice.repository.RepositorySupport
 import com.querydsl.core.types.dsl.Expressions
 import org.springframework.data.domain.Pageable
@@ -55,7 +56,7 @@ class BossWorkplaceRepository : RepositorySupport() {
     /** 오늘 완료한 할 일 조회 **/
     fun findWorkplaceTodoRecordsByDate(
         workplaceId: Long,
-        isComplete: Boolean,
+        onlyCompleted: Boolean,
         pageable: Pageable,
         date: LocalDate = LocalDate.now()
     ): List<TodoRecordResponseDTO> {
@@ -91,7 +92,7 @@ class BossWorkplaceRepository : RepositorySupport() {
             .fetch()
             .toMutableList()
 
-        if (!isComplete) {
+        if (!onlyCompleted) {
             // 일터에 등록된 할일 조회
             val todos = select(
                 QWorkplaceTodoDTO(
@@ -219,7 +220,16 @@ class BossWorkplaceRepository : RepositorySupport() {
             .where(
                 workRecord.workplace.id.eq(workplaceId),
                 workRecord.workDate.eq(LocalDate.now()),
+                workRecord.workType.eq(WorkType.WORKING)
             ).fetch()
+    }
+
+    /** 일터 직원 수 조회 - 사장 제외 **/
+    fun findWorkplaceEmployeeTotalCount(workplaceId: Long): Int {
+        return select(employeeMember.id)
+            .from(employeeMember)
+            .where(employeeMember.workplace.id.eq(workplaceId), employeeMember.leaveDate.isNull)
+            .fetch().count()
     }
 
     /** 일터 목록 조회 **/
@@ -247,13 +257,17 @@ class BossWorkplaceRepository : RepositorySupport() {
     }
 
     /** 일터 요청 조회 **/
-    fun findRequestListByWorkplace(workplaceId: Long, pageable: Pageable): List<WorkplaceRequestSimpleResponseDTO> {
+    fun findRequestListByWorkplace(
+        workplaceId: Long,
+        pageable: Pageable,
+        isIncomplete: Boolean
+    ): List<WorkplaceRequestSimpleResponseDTO> {
         return select(
             QWorkplaceRequestSimpleResponseDTO(
                 workplaceRequest.id,
                 workplaceRequest.createDate,
                 workplaceRequest.requestType,
-                workplaceRequest.requestResult,
+                workplaceRequest.isCompleted,
                 QEmployeeMemberSimpleResponseDTO(
                     employeeMember.member.id,
                     employeeMember.id,
@@ -266,10 +280,14 @@ class BossWorkplaceRepository : RepositorySupport() {
             .innerJoin(workplaceRequest.requestEmployeeMember, employeeMember)
             .innerJoin(employeeMember.employeeRank, employeeRank)
             .where(workplaceRequest.workplace.id.eq(workplaceId))
+            .apply {
+                if (isIncomplete) where(workplaceRequest.isCompleted.isFalse)
+            }
             .pageableOption(pageable)
             .fetch()
     }
 
+    /** 요청 상세 **/
     fun findRequestDetail(requestId: Long): WorkplaceRequestDetailResponseDTO? {
         return select(
             QWorkplaceRequestDetailResponseDTO(
@@ -277,7 +295,7 @@ class BossWorkplaceRepository : RepositorySupport() {
                 workplaceRequest.createDate,
                 workplaceRequest.requestType,
                 workplaceRequest.requestContent,
-                workplaceRequest.requestResult,
+                workplaceRequest.isCompleted,
                 QEmployeeMemberSimpleResponseDTO(
                     employeeMember.member.id,
                     employeeMember.id,
@@ -431,7 +449,7 @@ class BossWorkplaceRepository : RepositorySupport() {
 
     /** 근무 기록 상세 조회 **/
     fun findWorkRecordDetail(workRecordId: Long) {
-        //todo 근무 상세 기록 ㄲㄲㄲㄱ
+        //todo 근무 상세
         select(
             QWorkRecordDetailResponseDTO(
                 Expressions.asNumber(workRecordId)

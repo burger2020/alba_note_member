@@ -33,12 +33,13 @@ class BossWorkplaceService(
         val pageable = PageRequest.of(0, 10)
         val completedTodos =
             workplaceRepository.findWorkplaceTodoRecordsByDate(workplaceInfo.workplaceId, true, pageable)
-        val totalTodayTodoCount = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceInfo.workplaceId)
         val currentEmployees = workplaceRepository.findWorkplaceCurrentEmployees(workplaceInfo.workplaceId)
-        val requestList = getRequestList(workplaceInfo.workplaceId, PageRequest.of(0, 10))
+        val requestList = getRequestList(workplaceInfo.workplaceId, PageRequest.of(0, 10), true)
 
+        workplaceInfo.totalTodoCount = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceInfo.workplaceId)
+        workplaceInfo.totalEmployeeCount =
+            workplaceRepository.findWorkplaceEmployeeTotalCount(workplaceInfo.workplaceId)
         workplaceInfo.completedTodos.addAll(completedTodos)
-        workplaceInfo.totalTodoCount = totalTodayTodoCount
         workplaceInfo.currentEmployees.addAll(currentEmployees)
         workplaceInfo.workplaceRequest.addAll(requestList)
 
@@ -62,8 +63,12 @@ class BossWorkplaceService(
     }
 
     /** 요청 조회 **/
-    fun getRequestList(workplaceId: Long, pageable: Pageable): List<WorkplaceRequestSimpleResponseDTO> {
-        val requestList = workplaceRepository.findRequestListByWorkplace(workplaceId, pageable)
+    fun getRequestList(
+        workplaceId: Long,
+        pageable: Pageable,
+        isIncomplete: Boolean
+    ): List<WorkplaceRequestSimpleResponseDTO> {
+        val requestList = workplaceRepository.findRequestListByWorkplace(workplaceId, pageable, isIncomplete)
         requestList.forEach {
             it.requestMember.imageUrl = s3service.convertCloudFrontUrl(it.requestMember.imageUrl)
         }
