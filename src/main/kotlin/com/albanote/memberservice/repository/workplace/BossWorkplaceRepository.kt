@@ -430,18 +430,43 @@ class BossWorkplaceRepository : RepositorySupport() {
     }
 
     /** 근무 기록 상세 조회 **/
-    fun findWorkRecordDetail(workRecordId: Long) {
-        //todo 근무 상세 기록 ㄲㄲㄲㄱ
-        select(
+    fun findWorkRecordDetail(workRecordId: Long): WorkRecordDetailResponseDTO? {
+        return select(
             QWorkRecordDetailResponseDTO(
-                Expressions.asNumber(workRecordId)
+                Expressions.asNumber(workRecordId),
+                QEmployeeMemberSimpleResponseDTO(
+                    employeeMember.member.id,
+                    employeeMember.id,
+                    employeeMember.name,
+                    employeeMember.imageUrl,
+                    employeeRank.name
+                ),
+                workRecord.workType,
+                workRecord.workDate,
+                workRecord.officeGoingTime,
+                workRecord.quittingTime,
+                workRecord.memo,
+                employeeRank.ordinaryHourlyWage
             )
         )
             .from(workRecord)
             .innerJoin(workRecord.employeeRankMember, employeeMemberRank)
+            .innerJoin(employeeMemberRank.employeeMember, employeeMember)
             .innerJoin(employeeMemberRank.employeeRank, employeeRank)
             .where(workRecord.id.eq(workRecordId))
             .fetchFirst()
+    }
+
+    /** 직원별 일별 근무 기록 조회 **/
+    fun findWorkRecordDetailByEmployee(employeeId: Long, date: LocalDate): WorkRecordDetailResponseDTO? {
+        val workRecordId = select(workRecord.id)
+            .from(workRecord)
+            .where(
+                workRecord.employeeMember.id.eq(employeeId),
+                workRecord.workDate.eq(date)
+            )
+            .fetchFirst() ?: return null
+        return findWorkRecordDetail(workRecordId)
     }
 
     /************************ update **************************/

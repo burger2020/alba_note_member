@@ -8,6 +8,7 @@ import com.albanote.memberservice.domain.entity.workplace.work.EmployeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.Todo
 import com.albanote.memberservice.domain.entity.workplace.work.TodoReferenceImage
 import com.albanote.memberservice.domain.entity.workplace.work.WorkType
+import com.albanote.memberservice.error.exception.workplace.NotFoundWorkRecordException
 import com.albanote.memberservice.repository.workplace.BossWorkplaceRepository
 import com.albanote.memberservice.service.S3Service
 import org.springframework.data.domain.PageRequest
@@ -127,8 +128,25 @@ class BossWorkplaceService(
     }
 
     /** 근무 기록 상세 조회 **/
-    fun getWorkRecordDetail(workRecordId: Long) {
-        workplaceRepository.findWorkRecordDetail(workRecordId)
+    fun getWorkRecordDetail(workRecordId: Long): WorkRecordDetailResponseDTO {
+        val workRecordDetail = workplaceRepository.findWorkRecordDetail(workRecordId)
+            ?: throw NotFoundWorkRecordException()
+
+        workRecordDetail.employeeMember.imageUrl =
+            s3service.convertCloudFrontUrl(workRecordDetail.employeeMember.imageUrl)
+
+        return workRecordDetail
+    }
+
+    /** 직원별 일별 근무 기록 조회 **/
+    fun getWorkRecordDetailByEmployee(employeeId: Long, date: LocalDate): WorkRecordDetailResponseDTO {
+        val workRecordDetail = workplaceRepository.findWorkRecordDetailByEmployee(employeeId, date)
+            ?: throw NotFoundWorkRecordException()
+
+        workRecordDetail.employeeMember.imageUrl =
+            s3service.convertCloudFrontUrl(workRecordDetail.employeeMember.imageUrl)
+
+        return workRecordDetail
     }
 
     /** 일터 직원 간단한 정보 조회 **/
