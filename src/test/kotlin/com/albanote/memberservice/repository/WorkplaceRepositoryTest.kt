@@ -17,7 +17,7 @@ internal class WorkplaceRepositoryTest {
         val workplaceId = 0L
         val todos = workplaceRepository.findWorkplaceTodoRecordsByDate(
             workplaceId = workplaceId,
-            isComplete = true,
+            onlyCompleted = true,
             pageable = PageRequest.of(0, 20),
             date = LocalDate.now()
         )

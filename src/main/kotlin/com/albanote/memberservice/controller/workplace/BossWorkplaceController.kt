@@ -46,11 +46,12 @@ class BossWorkplaceController(
 
     /** 일터 요청 조회 **/
     @GetMapping("/requestList")
-    fun getRequestList(
+    fun getWorkplaceRequestList(
         @RequestParam workplaceId: Long,
-        @PageableDefault(page = 0, size = 20) pageable: Pageable
+        @PageableDefault(page = 0, size = 20) pageable: Pageable,
+        @RequestParam isIncomplete: Boolean
     ): ResponseEntity<List<WorkplaceRequestSimpleResponseDTO>> {
-        val requestList = workplaceService.getRequestList(workplaceId, pageable)
+        val requestList = workplaceService.getRequestList(workplaceId, pageable, false)
 
         return ResponseEntity.ok(requestList)
     }
@@ -119,7 +120,7 @@ class BossWorkplaceController(
     }
 
     @GetMapping("/wrokRecordDetail")
-    fun getWorkRecordDetail(@RequestParam workRecordId: Long){
+    fun getWorkRecordDetail(@RequestParam workRecordId: Long) {
         workplaceService.getWorkRecordDetail(workRecordId)
     }
 

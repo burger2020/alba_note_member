@@ -22,6 +22,5 @@ class EmployeeMemberRank(
     @JoinColumn(name = "employee_rank_id")
     @OneToOne(fetch = FetchType.LAZY)
     val employeeRank: EmployeeRank
-
 ) : BaseEntity(id) {
 }

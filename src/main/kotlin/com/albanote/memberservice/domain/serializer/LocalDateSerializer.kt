@@ -14,10 +14,10 @@ import java.time.LocalTime
  * json으로 어떻게 바꿀지 설정 날짜 형식을 바꾸기 위해 사용
  *
  */
-@JsonComponent
-class LocalDateSerializer : JsonSerializer<LocalDate?>() {
-    @Throws(IOException::class)
-    override fun serialize(value: LocalDate?, gen: JsonGenerator, serializers: SerializerProvider) {
-        gen.writeNumber(Timestamp.valueOf(LocalDateTime.of(value, LocalTime.of(0, 0))).time)
-    }
-}
+//@JsonComponent
+//class LocalDateSerializer : JsonSerializer<LocalDate?>() {
+//    @Throws(IOException::class)
+//    override fun serialize(value: LocalDate?, gen: JsonGenerator, serializers: SerializerProvider) {
+//        gen.writeNumber(Timestamp.valueOf(LocalDateTime.of(value, LocalTime.of(0, 0))).time)
+//    }
+//}

@@ -14,4 +14,5 @@ class WorkplaceInfoOfBossResponseDTO @QueryProjection constructor(
     var currentEmployees: MutableList<WorkRecordResponseDTO> = mutableListOf()
     var completedTodos: MutableList<TodoRecordResponseDTO> = mutableListOf()
     var totalTodoCount: Int = 0
+    var totalEmployeeCount: Int = 0
 }
