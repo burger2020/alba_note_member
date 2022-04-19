@@ -2,18 +2,12 @@ package com.albanote.memberservice.controller.workplace
 
 import com.albanote.memberservice.domain.dto.request.workplace.*
 import com.albanote.memberservice.domain.dto.response.workplace.*
+import com.albanote.memberservice.error.exception.workplace.NotFoundWorkRecordException
 import com.albanote.memberservice.service.workplace.BossWorkplaceService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 
@@ -46,12 +40,12 @@ class BossWorkplaceController(
 
     /** 일터 요청 조회 **/
     @GetMapping("/requestList")
-    fun getWorkplaceRequestList(
+    fun getRequestList(
         @RequestParam workplaceId: Long,
-        @PageableDefault(page = 0, size = 20) pageable: Pageable,
-        @RequestParam isIncomplete: Boolean
+        @RequestParam isIncomplete: Boolean = false,
+        @PageableDefault(page = 0, size = 20) pageable: Pageable
     ): ResponseEntity<List<WorkplaceRequestSimpleResponseDTO>> {
-        val requestList = workplaceService.getRequestList(workplaceId, pageable, false)
+        val requestList = workplaceService.getRequestList(workplaceId, isIncomplete, pageable)
 
         return ResponseEntity.ok(requestList)
     }
@@ -119,9 +113,18 @@ class BossWorkplaceController(
         return ResponseEntity.ok(workRecords)
     }
 
-    @GetMapping("/wrokRecordDetail")
-    fun getWorkRecordDetail(@RequestParam workRecordId: Long) {
-        workplaceService.getWorkRecordDetail(workRecordId)
+    /** 직원별 일별 또는 일별 근무 상세 조회
+     * @throws NotFoundWorkRecordException - 근무 내역 없음
+     * */
+    @GetMapping("/workRecordDetail")
+    fun getWorkRecordDetail(
+        @RequestParam workRecordId: Long?,
+        @RequestParam employeeId: Long?,
+        @RequestParam date: LocalDate
+    ): ResponseEntity<WorkRecordDetailResponseDTO> {
+        val workRecordDetail = workplaceService.getWorkRecordDetail(workRecordId, employeeId, date)
+
+        return ResponseEntity.ok(workRecordDetail)
     }
 
     /*********************   post   *********************/
@@ -166,9 +169,10 @@ class BossWorkplaceController(
     fun postCreateTodoReferenceImage(
         @RequestParam workplaceId: Long,
         @RequestParam("file") file: MultipartFile
-    ) {
-        workplaceService.postCreateTodoReferenceImage(workplaceId, file)
-        //todo
+    ): ResponseEntity<String> {
+        val path = workplaceService.postCreateTodoReferenceImage(workplaceId, file)
+
+        return ResponseEntity.ok(path)
     }
 
     /************************ put **************************/

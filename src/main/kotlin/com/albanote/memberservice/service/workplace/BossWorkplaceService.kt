@@ -8,6 +8,7 @@ import com.albanote.memberservice.domain.entity.workplace.work.EmployeeTodo
 import com.albanote.memberservice.domain.entity.workplace.work.Todo
 import com.albanote.memberservice.domain.entity.workplace.work.TodoReferenceImage
 import com.albanote.memberservice.domain.entity.workplace.work.WorkType
+import com.albanote.memberservice.error.exception.workplace.NotFoundWorkRecordException
 import com.albanote.memberservice.repository.workplace.BossWorkplaceRepository
 import com.albanote.memberservice.service.S3Service
 import org.springframework.data.domain.PageRequest
@@ -34,7 +35,7 @@ class BossWorkplaceService(
         val completedTodos =
             workplaceRepository.findWorkplaceTodoRecordsByDate(workplaceInfo.workplaceId, true, pageable)
         val currentEmployees = workplaceRepository.findWorkplaceCurrentEmployees(workplaceInfo.workplaceId)
-        val requestList = getRequestList(workplaceInfo.workplaceId, PageRequest.of(0, 10), true)
+        val requestList = getRequestList(workplaceInfo.workplaceId, true, PageRequest.of(0, 10))
 
         workplaceInfo.totalTodoCount = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceInfo.workplaceId)
         workplaceInfo.totalEmployeeCount =
@@ -65,8 +66,8 @@ class BossWorkplaceService(
     /** 요청 조회 **/
     fun getRequestList(
         workplaceId: Long,
+        isIncomplete: Boolean,
         pageable: Pageable,
-        isIncomplete: Boolean
     ): List<WorkplaceRequestSimpleResponseDTO> {
         val requestList = workplaceRepository.findRequestListByWorkplace(workplaceId, pageable, isIncomplete)
         requestList.forEach {
@@ -132,8 +133,16 @@ class BossWorkplaceService(
     }
 
     /** 근무 기록 상세 조회 **/
-    fun getWorkRecordDetail(workRecordId: Long) {
-        workplaceRepository.findWorkRecordDetail(workRecordId)
+    fun getWorkRecordDetail(workRecordId: Long?, employeeId: Long?, date: LocalDate?): WorkRecordDetailResponseDTO {
+        val workRecordDetail = workplaceRepository.findWorkRecordDetail(workRecordId, employeeId, date)
+            ?: throw NotFoundWorkRecordException()
+
+        workRecordDetail.employeeMember.imageUrl =
+            s3service.convertCloudFrontUrl(workRecordDetail.employeeMember.imageUrl)
+
+        //todo 부가 정보 입력
+
+        return workRecordDetail
     }
 
     /** 일터 직원 간단한 정보 조회 **/
