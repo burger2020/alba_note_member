@@ -448,17 +448,33 @@ class BossWorkplaceRepository : RepositorySupport() {
     }
 
     /** 근무 기록 상세 조회 **/
-    fun findWorkRecordDetail(workRecordId: Long) {
-        //todo 근무 상세
-        select(
+    fun findWorkRecordDetail(workRecordId: Long?, employeeId: Long?, date: LocalDate?): WorkRecordDetailResponseDTO? {
+        return select(
             QWorkRecordDetailResponseDTO(
-                Expressions.asNumber(workRecordId)
+                if (workRecordId != null) Expressions.asNumber(workRecordId) else workRecord.id,
+                QEmployeeMemberSimpleResponseDTO(
+                    employeeMember.member.id,
+                    employeeMember.id,
+                    employeeMember.name,
+                    employeeMember.imageUrl,
+                    employeeRank.name
+                ),
+                workRecord.workType,
+                workRecord.workDate,
+                workRecord.officeGoingTime,
+                workRecord.quittingTime,
+                workRecord.memo,
+                employeeRank.ordinaryHourlyWage
             )
         )
             .from(workRecord)
             .innerJoin(workRecord.employeeRankMember, employeeMemberRank)
             .innerJoin(employeeMemberRank.employeeRank, employeeRank)
-            .where(workRecord.id.eq(workRecordId))
+            .innerJoin(employeeMemberRank.employeeMember, employeeMember)
+            .apply {
+                if (workRecordId != null) where(workRecord.id.eq(workRecordId))
+                else where(workRecord.employeeMember.id.eq(employeeId), workRecord.workDate.eq(date))
+            }
             .fetchFirst()
     }
 

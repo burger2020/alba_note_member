@@ -42,9 +42,10 @@ class BossWorkplaceController(
     @GetMapping("/requestList")
     fun getRequestList(
         @RequestParam workplaceId: Long,
+        @RequestParam isIncomplete: Boolean = false,
         @PageableDefault(page = 0, size = 20) pageable: Pageable
     ): ResponseEntity<List<WorkplaceRequestSimpleResponseDTO>> {
-        val requestList = workplaceService.getRequestList(workplaceId, pageable)
+        val requestList = workplaceService.getRequestList(workplaceId, isIncomplete, pageable)
 
         return ResponseEntity.ok(requestList)
     }
@@ -112,25 +113,16 @@ class BossWorkplaceController(
         return ResponseEntity.ok(workRecords)
     }
 
-    /** 일별 근무 상세 조회
+    /** 직원별 일별 또는 일별 근무 상세 조회
      * @throws NotFoundWorkRecordException - 근무 내역 없음
      * */
     @GetMapping("/workRecordDetail")
-    fun getWorkRecordDetail(@RequestParam workRecordId: Long): ResponseEntity<WorkRecordDetailResponseDTO> {
-        val workRecordDetail = workplaceService.getWorkRecordDetail(workRecordId)
-
-        return ResponseEntity.ok(workRecordDetail)
-    }
-
-    /** 직원별 일별 근무 기록 조회
-     * @throws NotFoundWorkRecordException - 근무 내역 없음
-     * */
-    @GetMapping("/workRecordDetailByEmployee")
-    fun getWorkRecordDetailByEmployee(
-        @RequestParam employeeId: Long,
+    fun getWorkRecordDetail(
+        @RequestParam workRecordId: Long?,
+        @RequestParam employeeId: Long?,
         @RequestParam date: LocalDate
     ): ResponseEntity<WorkRecordDetailResponseDTO> {
-        val workRecordDetail = workplaceService.getWorkRecordDetailByEmployee(employeeId, date)
+        val workRecordDetail = workplaceService.getWorkRecordDetail(workRecordId, employeeId, date)
 
         return ResponseEntity.ok(workRecordDetail)
     }

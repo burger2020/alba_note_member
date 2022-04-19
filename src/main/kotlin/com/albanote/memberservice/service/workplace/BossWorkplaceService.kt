@@ -35,7 +35,7 @@ class BossWorkplaceService(
         val completedTodos =
             workplaceRepository.findWorkplaceTodoRecordsByDate(workplaceInfo.workplaceId, true, pageable)
         val currentEmployees = workplaceRepository.findWorkplaceCurrentEmployees(workplaceInfo.workplaceId)
-        val requestList = getRequestList(workplaceInfo.workplaceId, PageRequest.of(0, 10), true)
+        val requestList = getRequestList(workplaceInfo.workplaceId, true, PageRequest.of(0, 10))
 
         workplaceInfo.totalTodoCount = workplaceRepository.findWorkplaceTodayTotalTodoCount(workplaceInfo.workplaceId)
         workplaceInfo.totalEmployeeCount =
@@ -66,8 +66,8 @@ class BossWorkplaceService(
     /** 요청 조회 **/
     fun getRequestList(
         workplaceId: Long,
+        isIncomplete: Boolean,
         pageable: Pageable,
-        isIncomplete: Boolean
     ): List<WorkplaceRequestSimpleResponseDTO> {
         val requestList = workplaceRepository.findRequestListByWorkplace(workplaceId, pageable, isIncomplete)
         requestList.forEach {
@@ -133,23 +133,14 @@ class BossWorkplaceService(
     }
 
     /** 근무 기록 상세 조회 **/
-    fun getWorkRecordDetail(workRecordId: Long): WorkRecordDetailResponseDTO {
-        val workRecordDetail = workplaceRepository.findWorkRecordDetail(workRecordId)
+    fun getWorkRecordDetail(workRecordId: Long?, employeeId: Long?, date: LocalDate?): WorkRecordDetailResponseDTO {
+        val workRecordDetail = workplaceRepository.findWorkRecordDetail(workRecordId, employeeId, date)
             ?: throw NotFoundWorkRecordException()
 
         workRecordDetail.employeeMember.imageUrl =
             s3service.convertCloudFrontUrl(workRecordDetail.employeeMember.imageUrl)
 
-        return workRecordDetail
-    }
-
-    /** 직원별 일별 근무 기록 조회 **/
-    fun getWorkRecordDetailByEmployee(employeeId: Long, date: LocalDate): WorkRecordDetailResponseDTO {
-        val workRecordDetail = workplaceRepository.findWorkRecordDetailByEmployee(employeeId, date)
-            ?: throw NotFoundWorkRecordException()
-
-        workRecordDetail.employeeMember.imageUrl =
-            s3service.convertCloudFrontUrl(workRecordDetail.employeeMember.imageUrl)
+        //todo 부가 정보 입력
 
         return workRecordDetail
     }
