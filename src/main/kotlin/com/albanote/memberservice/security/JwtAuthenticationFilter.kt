@@ -28,7 +28,8 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
             request.requestURI.contains("/login") ||
             request.requestURI.contains("/websocket") ||
             request.requestURI.contains("/error") ||
-            request.requestURI.contains("/token/refresh")
+            request.requestURI.contains("/token/refresh")||
+            request.requestURI.contains("/favicon.ico")
         ) {
             try {
                 chain?.doFilter(request, response)
