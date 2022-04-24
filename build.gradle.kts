@@ -39,6 +39,7 @@ dependencies {
 	implementation("redis.clients:jedis:3.3.0") //redis
 
 	//spring boot
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-web")
