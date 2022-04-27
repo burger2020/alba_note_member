@@ -3,7 +3,6 @@ package com.albanote.memberservice.repository.workplace
 import com.albanote.memberservice.domain.dto.query.workplace.QWorkplaceTodoDTO
 import com.albanote.memberservice.domain.dto.query.workplace.WorkplaceTodoDTO
 import com.albanote.memberservice.domain.dto.response.workplace.*
-import com.albanote.memberservice.domain.entity.member.QMember.member
 import com.albanote.memberservice.domain.entity.workplace.EmployeeRank
 import com.albanote.memberservice.domain.entity.workplace.QCommuteTimeByDayOfWeek.commuteTimeByDayOfWeek
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeMember.employeeMember
@@ -310,13 +309,29 @@ class BossWorkplaceRepository : RepositorySupport() {
                 workplaceRequest.memo,
                 workplaceRequest.requestWorkDate,
                 workplaceRequest.correctionOfficeGoingTime,
-                workplaceRequest.correctionQuittingTime
+                workplaceRequest.correctionQuittingTime,
+                workplaceRequest.correctionWorkRecord.id
             )
         ).from(workplaceRequest)
             .innerJoin(workplaceRequest.requestEmployeeMember, employeeMember)
             .innerJoin(employeeMember.employeeRank, employeeRank)
             .where(workplaceRequest.id.eq(requestId))
             .fetchFirst()
+    }
+
+    /** 수정 요청 할 근무의 기록 조회 **/
+    fun findRequestCorrectionCommuteTime(workRecordId: Long): WorkplaceRequestCorrectionWorkRecordResponseDTO? {
+        return select(
+            QWorkplaceRequestCorrectionWorkRecordResponseDTO(
+                workRecord.officeGoingTime,
+                workRecord.quittingTime,
+                workRecord.workDate
+            )
+        )
+            .from(workRecord)
+            .where(workRecord.id.eq(workRecordId))
+            .fetchFirst()
+
     }
 
     /** 일터 할 일 기록 상세 조회 **/
