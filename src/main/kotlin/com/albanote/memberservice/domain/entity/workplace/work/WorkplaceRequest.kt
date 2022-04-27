@@ -32,11 +32,6 @@ class WorkplaceRequest(
     @OneToOne(fetch = FetchType.LAZY)
     val correctionWorkRecord: WorkRecord? = null,
 
-
-    // 기존 출퇴근 시간 - COMMUTE_CORRECT 만 사용
-    var existingOfficeGoingTime: LocalTime? = null,
-    var existingQuittingTime: LocalTime? = null,
-
     // 정정 및 등록 시간
     val correctionOfficeGoingTime: LocalTime? = null,
     val correctionQuittingTime: LocalTime? = null,

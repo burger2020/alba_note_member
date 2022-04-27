@@ -28,4 +28,5 @@ class WorkplaceRequestDetailResponseDTO @QueryProjection constructor(
     // 기존 출퇴근 시간 -
     var existingOfficeGoingTime: LocalTime? = null
     var existingQuittingTime: LocalTime? = null
+    //todo 이거는 근무 기록 (workRecord) 에서 가져오면 됨
 }
