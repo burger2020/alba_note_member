@@ -1,8 +1,8 @@
 package com.albanote.memberservice.security
 
 import com.albanote.memberservice.domain.dto.ErrorDTO
+import com.albanote.memberservice.error.exception.AccessTokenNotValidException
 import com.albanote.memberservice.error.exception.BaseException
-import com.albanote.memberservice.error.exception.RefreshTokenNotValidException
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Jwts
 import org.springframework.core.env.Environment
@@ -28,7 +28,7 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
             request.requestURI.contains("/login") ||
             request.requestURI.contains("/websocket") ||
             request.requestURI.contains("/error") ||
-            request.requestURI.contains("/token/refresh")||
+            request.requestURI.contains("/refreshToken")||
             request.requestURI.contains("/favicon.ico")
         ) {
             try {
@@ -41,19 +41,19 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
 
         // /member 경로는 access token 검사
         if (request.getHeader(HttpHeaders.AUTHORIZATION) == null)
-            onException(RefreshTokenNotValidException("no access token"), response)
+            onException(AccessTokenNotValidException("no access token"), response)
 
         val accessToken = request.getHeader("Authorization") ?: request.getHeader("authorization")
         val jwt = accessToken.replace("Bearer", "").replace(" ", "")
 
         if (isJwtValid(jwt)) chain?.doFilter(request, response)
-        else onException(RefreshTokenNotValidException("invalid jwt token"), response)
+        else onException(AccessTokenNotValidException("invalid jwt token"), response)
     }
 
     private fun onException(e: BaseException, response: ServletResponse?) {
         response as HttpServletResponse
         response.status =
-            if (e is RefreshTokenNotValidException) HttpStatus.UNAUTHORIZED.value() else HttpStatus.FORBIDDEN.value()
+            if (e is AccessTokenNotValidException) HttpStatus.UNAUTHORIZED.value() else HttpStatus.FORBIDDEN.value()
         response.contentType = "application/json; charset=UTF-8"
         val errorDTO = ErrorDTO(message = e.message, code = e.code)
         val mapper = ObjectMapper()

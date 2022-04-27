@@ -1,3 +1,9 @@
 package com.albanote.memberservice.error.exception
 
-class BadLanguageException(message: String): BaseException(message, code = 601)
+
+/**
+ * errorCode - 602
+ *
+ * @author burger
+ * */
+class BadLanguageException(message: String): BaseException(message, code = 602)

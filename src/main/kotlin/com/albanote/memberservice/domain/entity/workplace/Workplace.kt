@@ -66,7 +66,7 @@ class Workplace(
 
     @JoinColumn(name = "workplace_image_id")
     @OneToOne(fetch = FetchType.LAZY)
-    val workplaceImage: WorkplaceImage? = null
+    var workplaceImage: WorkplaceImage? = null
 ) : BaseTimeEntity(id) {
 
 }

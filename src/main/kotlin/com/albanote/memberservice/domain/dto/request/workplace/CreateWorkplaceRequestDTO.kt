@@ -11,42 +11,41 @@ import java.time.LocalDate
 class CreateWorkplaceRequestDTO(
     val bossMemberId: Long,
 
-    val title: String,
-    val maxEmployeeNum: Int,
+    val name: String,
+//    val maxEmployeeNum: Int,
     val address: String,
     val detailAddress: String,
-    val commuteRecordWifiMacAddress: String,
+//    val commuteRecordWifiMacAddress: String,
     val commuteRecordCoordinate: Coordinate,
     val commuteRecordRadius: Int,
 
     // 사업장 정보
-    val businessLicenseNumber: String?,
-    val bossName: String?,
-    val openingDate: LocalDate?,
-    val tradeName: String?,
-    val businessName: String?,
+//    val businessLicenseNumber: String?,
+//    val bossName: String?,
+//    val openingDate: LocalDate?,
+//    val tradeName: String?,
+//    val businessName: String?,
 
-    val imageUrl: String,
+//    val imageUrl: String,
 
     // 사장님 직책 정보
     val bossEmployeeRankName: String,
     val bossEmployeeName: String,
-    val bossEmployeePhoneNumber: String,
-
+    val bossEmployeePhoneNumber: String
 ) {
 
     fun convertToEntity(): Workplace {
         return Workplace(
-            title = title,
-            maxEmployeeNum = maxEmployeeNum,
+            title = name,
+//            maxEmployeeNum = maxEmployeeNum,
             address = address,
             detailAddress = detailAddress,
-            commuteRecordWifiMacAddress = commuteRecordWifiMacAddress,
+//            commuteRecordWifiMacAddress = commuteRecordWifiMacAddress,
             commuteRecordCoordinate = commuteRecordCoordinate,
             commuteRecordRadius = commuteRecordRadius,
-            businessCertification = BusinessCertificationInfo(
-                businessLicenseNumber, bossName, openingDate, tradeName, businessName
-            )
+//            businessCertification = BusinessCertificationInfo(
+//                businessLicenseNumber, bossName, openingDate, tradeName, businessName
+//            )
         )
     }
 }

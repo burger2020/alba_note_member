@@ -11,5 +11,6 @@ class WorkplaceRequestSimpleResponseDTO @QueryProjection constructor(
     var createdDate: LocalDateTime,
     var requestType: WorkplaceRequestType,
     var isCompleted: Boolean?,
+    var memo: String?,
     var requestMember: EmployeeMemberSimpleResponseDTO
 )

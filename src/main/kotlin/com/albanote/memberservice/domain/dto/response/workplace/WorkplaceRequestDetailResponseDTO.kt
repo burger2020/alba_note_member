@@ -13,9 +13,10 @@ class WorkplaceRequestDetailResponseDTO @QueryProjection constructor(
     var createdDate: LocalDateTime,
     var requestType: WorkplaceRequestType,
     var requestContent: String,
-    var requestResult: Boolean?,
+    var isComplete: Boolean?,
+    var memo: String?,
     var requestMember: EmployeeMemberSimpleResponseDTO,
-    var requestMemo: String,
+    var requestMemo: String?,
     // 근무 생성 요청 시 근무 날짜
     var requestWorkDate: LocalDate,
     // 요청 출퇴근 시간

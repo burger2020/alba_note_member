@@ -162,6 +162,10 @@ class BossWorkplaceService(
     @Transactional
     fun postCreateWorkplace(dto: CreateWorkplaceRequestDTO): Long? {
         val workplace = dto.convertToEntity()
+        // 일터 사진 정보 생성
+        val workplaceImage = WorkplaceImage(workplace = workplace, imageUrl = null)
+        workplace.workplaceImage = workplaceImage
+        em.persist(workplaceImage)
         em.persist(workplace)
         // 사장 직책 생성
         val bossEmployeeRank = EmployeeRank(workplace = workplace, name = dto.bossEmployeeRankName, isBoss = true)
@@ -175,9 +179,6 @@ class BossWorkplaceService(
             phoneNumber = dto.bossEmployeePhoneNumber
         )
         em.persist(bossEmployeeMember)
-        // 일터 사진 정보 생성
-        val workplaceImage = WorkplaceImage(workplace = workplace, imageUrl = null)
-        em.persist(workplaceImage)
 
         // 대표일터 설정안 되어 있으면 대표일터 설정
         val isExistRepWorkplace = workplaceRepository.findRepWorkplaceByMember(dto.bossMemberId) != null
