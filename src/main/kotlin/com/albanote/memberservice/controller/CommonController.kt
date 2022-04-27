@@ -39,7 +39,7 @@ class CommonController(
         return ResponseEntity.ok(true)
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refreshToken")
     fun postRefreshToken(
         @RequestBody dto: MemberIdRequestDTO,
         @RequestHeader headers: HttpHeaders

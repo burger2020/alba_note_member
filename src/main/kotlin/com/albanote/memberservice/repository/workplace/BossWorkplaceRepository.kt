@@ -37,20 +37,20 @@ class BossWorkplaceRepository : RepositorySupport() {
                 workplace.id,
                 workplace.title,
                 workplaceImage.imageUrl
+//                workplaceImage.imageUrl
             )
         ).apply {
             if (workplaceId == null) {
-                from(member)
-                    .innerJoin(member.repWorkplace, memberRepWorkplace)
+                from(memberRepWorkplace)
                     .innerJoin(memberRepWorkplace.workplace, workplace)
-                    .where(member.id.eq(memberId))
+                    .innerJoin(workplace.workplaceImage, workplaceImage)
+                    .where(memberRepWorkplace.member.id.eq(memberId))
             } else {
                 from(workplace)
+                    .innerJoin(workplace.workplaceImage, workplaceImage)
                     .where(workplace.id.eq(workplaceId))
             }
-        }
-            .innerJoin(workplace.workplaceImage, workplaceImage)
-            .fetchFirst()
+        }.fetchFirst()
     }
 
     /** 오늘 완료한 할 일 조회 **/
@@ -268,6 +268,7 @@ class BossWorkplaceRepository : RepositorySupport() {
                 workplaceRequest.createDate,
                 workplaceRequest.requestType,
                 workplaceRequest.isCompleted,
+                workplaceRequest.memo,
                 QEmployeeMemberSimpleResponseDTO(
                     employeeMember.member.id,
                     employeeMember.id,
@@ -296,6 +297,7 @@ class BossWorkplaceRepository : RepositorySupport() {
                 workplaceRequest.requestType,
                 workplaceRequest.requestContent,
                 workplaceRequest.isCompleted,
+                workplaceRequest.memo,
                 QEmployeeMemberSimpleResponseDTO(
                     employeeMember.member.id,
                     employeeMember.id,
