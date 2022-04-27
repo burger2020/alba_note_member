@@ -28,7 +28,7 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
             request.requestURI.contains("/login") ||
             request.requestURI.contains("/websocket") ||
             request.requestURI.contains("/error") ||
-            request.requestURI.contains("/token/refresh")||
+            request.requestURI.contains("/token/refresh") ||
             request.requestURI.contains("/favicon.ico")
         ) {
             try {
@@ -51,9 +51,9 @@ class JwtAuthenticationFilter(private val env: Environment) : GenericFilterBean(
     }
 
     private fun onException(e: BaseException, response: ServletResponse?) {
-        response as HttpServletResponse
-        response.status =
-            if (e is RefreshTokenNotValidException) HttpStatus.UNAUTHORIZED.value() else HttpStatus.FORBIDDEN.value()
+        (response as HttpServletResponse).status =
+            if (e is RefreshTokenNotValidException) HttpStatus.UNAUTHORIZED.value()
+            else HttpStatus.FORBIDDEN.value()
         response.contentType = "application/json; charset=UTF-8"
         val errorDTO = ErrorDTO(message = e.message, code = e.code)
         val mapper = ObjectMapper()

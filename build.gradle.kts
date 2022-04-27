@@ -36,7 +36,7 @@ extra["springCloudVersion"] = "2021.0.0"
 dependencies {
 	//spring
 	implementation("org.springframework.kafka:spring-kafka")  // kafka
-	implementation("redis.clients:jedis:3.3.0") //redis
+	implementation("redis.clients:jedis:4.2.1") //redis
 
 	//spring boot
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -64,8 +64,8 @@ dependencies {
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 
 	//aws
-	implementation("org.springframework.cloud:spring-cloud-aws:2.2.5.RELEASE")
-	implementation("org.springframework.cloud:spring-cloud-aws-context:2.2.5.RELEASE")
+	implementation("org.springframework.cloud:spring-cloud-aws:2.2.6.RELEASE")
+	implementation("org.springframework.cloud:spring-cloud-aws-context:2.2.6.RELEASE")
 	// aws java sdk
 	implementation(platform("com.amazonaws:aws-java-sdk-bom:1.11.997"))
 	implementation("com.amazonaws:aws-java-sdk-cloudfront")

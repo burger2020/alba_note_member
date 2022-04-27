@@ -40,10 +40,9 @@ class BossWorkplaceRepository : RepositorySupport() {
             )
         ).apply {
             if (workplaceId == null) {
-                from(member)
-                    .innerJoin(member.repWorkplace, memberRepWorkplace)
+                from(memberRepWorkplace)
                     .innerJoin(memberRepWorkplace.workplace, workplace)
-                    .where(member.id.eq(memberId))
+                    .where(memberRepWorkplace.member.id.eq(memberId))
             } else {
                 from(workplace)
                     .where(workplace.id.eq(workplaceId))
@@ -256,12 +255,18 @@ class BossWorkplaceRepository : RepositorySupport() {
         return workplaces
     }
 
-    /** 일터 요청 조회 **/
+    /** 일터 요청 리스트 조회 **/
     fun findRequestListByWorkplace(
         workplaceId: Long,
         pageable: Pageable,
         isIncomplete: Boolean
     ): List<WorkplaceRequestSimpleResponseDTO> {
+        val workplaceRequestIds = select(workplaceRequest.id)
+            .from(workplaceRequest)
+            .where(workplaceRequest.workplace.id.eq(workplaceId))
+            .apply { if (isIncomplete) where(workplaceRequest.isCompleted.isNull) }
+            .orderBy(workplaceRequest.createDate.desc())
+            .fetch()
         return select(
             QWorkplaceRequestSimpleResponseDTO(
                 workplaceRequest.id,
@@ -279,10 +284,7 @@ class BossWorkplaceRepository : RepositorySupport() {
         ).from(workplaceRequest)
             .innerJoin(workplaceRequest.requestEmployeeMember, employeeMember)
             .innerJoin(employeeMember.employeeRank, employeeRank)
-            .where(workplaceRequest.workplace.id.eq(workplaceId))
-            .apply {
-                if (isIncomplete) where(workplaceRequest.isCompleted.isFalse)
-            }
+            .where(workplaceRequest.id.`in`(workplaceRequestIds))
             .pageableOption(pageable)
             .fetch()
     }
