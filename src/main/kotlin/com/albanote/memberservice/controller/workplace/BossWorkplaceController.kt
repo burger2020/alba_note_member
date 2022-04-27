@@ -130,7 +130,7 @@ class BossWorkplaceController(
     /*********************   post   *********************/
 
     /** 일터 생성 **/
-    @PostMapping("/createWokrplace")
+    @PostMapping("/createWorkplace")
     fun postCreateWorkplace(@RequestBody dto: CreateWorkplaceRequestDTO): ResponseEntity<Long?> {
         val workplaceId = workplaceService.postCreateWorkplace(dto)
 

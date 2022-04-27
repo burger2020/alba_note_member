@@ -1,6 +1,6 @@
 package com.albanote.memberservice.security
 
-import com.albanote.memberservice.error.exception.AccessTokenNotValidException
+import com.albanote.memberservice.error.exception.BasicTokenNotValidException
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
 import org.springframework.web.filter.GenericFilterBean
@@ -22,13 +22,13 @@ class BasicAuthenticationFilter(private val env: Environment) : GenericFilterBea
 
         // /member 경로는 access token 검사
         if (request.getHeader(HttpHeaders.AUTHORIZATION) == null)
-            throw AccessTokenNotValidException("no basic token")
+            throw BasicTokenNotValidException("no basic token")
 
         val accessToken = request.getHeader("Authorization") ?: request.getHeader("authorization")
         val basic = accessToken.replace("Basic", "").replace(" ", "")
 
         if (isBasicTokenValid(basic)) chain?.doFilter(request, response)
-        else throw AccessTokenNotValidException("invalid basic token")
+        else throw BasicTokenNotValidException("invalid basic token")
     }
 
     /** jwt 검증 **/
@@ -38,7 +38,7 @@ class BasicAuthenticationFilter(private val env: Environment) : GenericFilterBea
                 .encodeToString("${env.getProperty("security.basic.server_id")}:${env.getProperty("security.basic.server_pwd")}".toByteArray())
             return basicToken == basic
         } catch (e: Exception) {
-            throw AccessTokenNotValidException("invalid basic token")
+            throw BasicTokenNotValidException("invalid basic token")
         }
     }
 }

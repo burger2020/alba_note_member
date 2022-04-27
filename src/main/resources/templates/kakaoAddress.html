@@ -11,7 +11,6 @@
 daum.postcode.load(function () {
     new daum.Postcode({
         oncomplete: function (data) {
-
             const varUA = navigator.userAgent.toLowerCase(); //userAgent 값 얻기
 
             // userSelectedType : 검색 결과에서 사용자가 선택한 주소의 타입
@@ -24,13 +23,12 @@ daum.postcode.load(function () {
                     window.flutter_inappwebview.callHandler('handlerFoo', data.zonecode, data.jibunAddress, data.buildingName);
             } else if (varUA.indexOf("iphone") > -1 || varUA.indexOf("ipad") > -1 || varUA.indexOf("ipod") > -1) {
                 //IOS
-
+                if (data.userSelectedType === "R")
+                    window.flutter_inappwebview.callHandler('handlerFoo', data.zonecode, data.roadAddress, data.buildingName);
+                else
+                    window.flutter_inappwebview.callHandler('handlerFoo', data.zonecode, data.jibunAddress, data.buildingName);
             } else {
                 //아이폰, 안드로이드 외
-                // if (data.userSelectedType === "R")
-                //     window.Hitup.setAddress(data.zonecode, data.roadAddress, data.buildingName);
-                // else
-                //     window.Hitup.setAddress(data.zonecode, data.jibunAddress, data.buildingName);
             }
         },
         width: '100%',
