@@ -37,7 +37,6 @@ class BossWorkplaceRepository : RepositorySupport() {
                 workplace.id,
                 workplace.title,
                 workplaceImage.imageUrl
-//                workplaceImage.imageUrl
             )
         ).apply {
             if (workplaceId == null) {
@@ -256,12 +255,18 @@ class BossWorkplaceRepository : RepositorySupport() {
         return workplaces
     }
 
-    /** 일터 요청 조회 **/
+    /** 일터 요청 리스트 조회 **/
     fun findRequestListByWorkplace(
         workplaceId: Long,
         pageable: Pageable,
         isIncomplete: Boolean
     ): List<WorkplaceRequestSimpleResponseDTO> {
+        val workplaceRequestIds = select(workplaceRequest.id)
+            .from(workplaceRequest)
+            .where(workplaceRequest.workplace.id.eq(workplaceId))
+            .apply { if (isIncomplete) where(workplaceRequest.isCompleted.isNull) }
+            .orderBy(workplaceRequest.createDate.desc())
+            .fetch()
         return select(
             QWorkplaceRequestSimpleResponseDTO(
                 workplaceRequest.id,
@@ -280,10 +285,7 @@ class BossWorkplaceRepository : RepositorySupport() {
         ).from(workplaceRequest)
             .innerJoin(workplaceRequest.requestEmployeeMember, employeeMember)
             .innerJoin(employeeMember.employeeRank, employeeRank)
-            .where(workplaceRequest.workplace.id.eq(workplaceId))
-            .apply {
-                if (isIncomplete) where(workplaceRequest.isCompleted.isFalse)
-            }
+            .where(workplaceRequest.id.`in`(workplaceRequestIds))
             .pageableOption(pageable)
             .fetch()
     }
