@@ -22,16 +22,27 @@ class WorkplaceRequestDetailResponseDTO @QueryProjection constructor(
     // 요청 출퇴근 시간
     var requestOfficeGoingTime: LocalTime,
     var requestQuittingTime: LocalTime,
+    val requestBreakTime: LocalTime?,
+    val requestNightBreakTime: LocalTime?,
+    val requestTotalSalary: Int,
 
-    var workRecordId: Long?
+    var employeeRankInfo: EmployeeRankSalaryInfoResponseDTO,
+
+    var workRecordId: Long?,
 ) {
     // 기존 출퇴근 시간 -
     var existingOfficeGoingTime: LocalTime? = null
     var existingQuittingTime: LocalTime? = null
+    var existingBreakTime: LocalTime? = null
+    var existingNightBreakTime: LocalTime? = null
+    var existingTotalSalary: Int? = null
 
     fun setCorrectionWorkRecordInfo(workRecord: WorkplaceRequestCorrectionWorkRecordResponseDTO) {
         existingOfficeGoingTime = workRecord.existingOfficeGoingTime
         existingQuittingTime = workRecord.existingQuittingTime
+        existingBreakTime = workRecord.existingBreakTime
+        existingNightBreakTime = workRecord.existingNightBreakTime
+        existingTotalSalary = workRecord.existingTotalSalary
         requestWorkDate = workRecord.workDate
     }
 }

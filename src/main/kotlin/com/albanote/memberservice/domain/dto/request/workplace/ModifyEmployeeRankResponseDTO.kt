@@ -25,7 +25,8 @@ class ModifyEmployeeRankResponseDTO(
     val hourlyWageCalculationUnit: Int,
     val officeGoingTime: LocalTime?,
     val quittingTime: LocalTime?,
-    val breakTime: Int,
+    val breakTime: LocalTime?,
+    val nightBreakTime: LocalTime?,
 
     val workingDay: String,
     var isCommuteTimeVaryByDayOfWeek: Boolean,
@@ -59,6 +60,7 @@ class ModifyEmployeeRankResponseDTO(
             officeGoingTime = officeGoingTime,
             quittingTime = quittingTime,
             breakTime = breakTime,
+            nightBreakTime = nightBreakTime,
             workingDay = workingDay,
             paidHoliday = paidHoliday,
             payday = payday,

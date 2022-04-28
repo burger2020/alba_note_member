@@ -38,8 +38,14 @@ class WorkRecord(
     val officeGoingTime: LocalTime? = null,
     val quittingTime: LocalTime? = null,
 
+    // 휴게시간
+    val breakTime: LocalTime? = null,
+    val nightBreakTime: LocalTime? = null,
+
     @Column(columnDefinition = "TEXT", nullable = true)
-    val memo: String? = null
+    val memo: String? = null,
+
+    val totalSalary: Int? = null
 ) : BaseEntity(id) {
 
 }

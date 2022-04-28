@@ -7,6 +7,9 @@ import java.time.LocalTime
 class WorkplaceRequestCorrectionWorkRecordResponseDTO @QueryProjection constructor(
     var existingOfficeGoingTime: LocalTime,
     var existingQuittingTime: LocalTime,
+    val existingBreakTime: LocalTime?,
+    val existingNightBreakTime: LocalTime?,
+    val existingTotalSalary: Int,
     var workDate: LocalDate
 ) {
 }

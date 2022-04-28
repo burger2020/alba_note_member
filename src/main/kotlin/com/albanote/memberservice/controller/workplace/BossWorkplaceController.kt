@@ -185,6 +185,14 @@ class BossWorkplaceController(
         return ResponseEntity.ok(response)
     }
 
+    /** 일터 요청 메모 변경 **/
+    @PutMapping("/changeRequestMemo")
+    fun putChangeRequestMemo(@RequestBody dto: ChangeRequestMemoRequestDTO): ResponseEntity<Boolean> {
+        val response = workplaceService.putChangeRequestMemo(dto)
+
+        return ResponseEntity.ok(response)
+    }
+
     /** 할 일 수정 **/
     @PutMapping("/modifyTodo")
     fun putModifyTodo(
