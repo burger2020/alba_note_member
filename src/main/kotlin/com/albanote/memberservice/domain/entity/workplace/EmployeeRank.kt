@@ -57,7 +57,8 @@ class EmployeeRank(
     val quittingTime: LocalTime? = null,
 
     // 휴게시간 분단위
-    val breakTime: Int? = null,
+    val breakTime: LocalTime? = null,
+    val nightBreakTime: LocalTime? = null,
 
     // 근무 요일 (MTWTFSS) 출근 안하는날은 _ ex) 월수금일 출근 -> 1_1_1_1
     @Column(columnDefinition = "TEXT", nullable = true)

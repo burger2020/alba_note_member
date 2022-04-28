@@ -79,12 +79,14 @@ class BossWorkplaceService(
     /** 요청 상세 보기 **/
     fun getRequestDetail(requestId: Long): WorkplaceRequestDetailResponseDTO {
         val requestDetail = workplaceRepository.findRequestDetail(requestId) ?: throw Exception("존재하지 않는 요청")
+        // 근무 기록 정정 요청일 경우 근무 기록 조회
         if (requestDetail.workRecordId != null && requestDetail.requestType == WorkplaceRequestType.COMMUTE_CORRECTION) {
             val workRecord = workplaceRepository.findRequestCorrectionCommuteTime(requestDetail.workRecordId!!)
-                    ?: throw Exception("존재하지 않는 근무")
+                ?: throw Exception("존재하지 않는 근무")
             requestDetail.setCorrectionWorkRecordInfo(workRecord)
         }
-        requestDetail.existingOfficeGoingTime
+        workplaceRepository.findEmployeeRankInfo(requestDetail.requestMember)
+
         requestDetail.requestMember.imageUrl = s3service.convertCloudFrontUrl(requestDetail.requestMember.imageUrl)
 
         return requestDetail
@@ -258,6 +260,12 @@ class BossWorkplaceService(
     @Transactional
     fun putChangeRepWorkplace(dto: ChangeRepWorkplaceRequestDTO): Boolean {
         return workplaceRepository.updateRepWorkplace(dto.memberId, dto.workplaceId)
+    }
+
+    /** 일터 요청 메모 변경 **/
+    @Transactional
+    fun putChangeRequestMemo(dto: ChangeRequestMemoRequestDTO): Boolean {
+        return workplaceRepository.updateRequestMemo(dto.requestId, dto.memo)
     }
 
     /** 할 일 수정 **/

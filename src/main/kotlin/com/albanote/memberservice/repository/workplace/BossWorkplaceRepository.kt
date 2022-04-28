@@ -7,6 +7,7 @@ import com.albanote.memberservice.domain.entity.workplace.EmployeeRank
 import com.albanote.memberservice.domain.entity.workplace.QCommuteTimeByDayOfWeek.commuteTimeByDayOfWeek
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeMember.employeeMember
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeMemberRank.employeeMemberRank
+import com.albanote.memberservice.domain.entity.workplace.QEmployeeRank
 import com.albanote.memberservice.domain.entity.workplace.QEmployeeRank.employeeRank
 import com.albanote.memberservice.domain.entity.workplace.QMemberRepWorkplace.memberRepWorkplace
 import com.albanote.memberservice.domain.entity.workplace.QWorkplace.workplace
@@ -282,7 +283,8 @@ class BossWorkplaceRepository : RepositorySupport() {
                 )
             )
         ).from(workplaceRequest)
-            .innerJoin(workplaceRequest.requestEmployeeMember, employeeMember)
+            .innerJoin(workplaceRequest.requestEmployeeMemberRank, employeeMemberRank)
+            .innerJoin(employeeMemberRank.employeeMember, employeeMember)
             .innerJoin(employeeMember.employeeRank, employeeRank)
             .where(workplaceRequest.id.`in`(workplaceRequestIds))
             .pageableOption(pageable)
@@ -291,6 +293,8 @@ class BossWorkplaceRepository : RepositorySupport() {
 
     /** 요청 상세 **/
     fun findRequestDetail(requestId: Long): WorkplaceRequestDetailResponseDTO? {
+        val currentRank = QEmployeeRank("currentRank")
+        val rank = QEmployeeRank("rank")
         return select(
             QWorkplaceRequestDetailResponseDTO(
                 workplaceRequest.id,
@@ -304,17 +308,39 @@ class BossWorkplaceRepository : RepositorySupport() {
                     employeeMember.id,
                     employeeMember.name,
                     employeeMember.imageUrl,
-                    employeeRank.name
+                    currentRank.name
                 ),
                 workplaceRequest.memo,
                 workplaceRequest.requestWorkDate,
-                workplaceRequest.correctionOfficeGoingTime,
-                workplaceRequest.correctionQuittingTime,
-                workplaceRequest.correctionWorkRecord.id
-            )
+                workplaceRequest.requestOfficeGoingTime,
+                workplaceRequest.requestQuittingTime,
+                workplaceRequest.requestBreakTime,
+                workplaceRequest.requestNightBreakTime,
+                workplaceRequest.requestTotalSalary,
+                QEmployeeRankSalaryInfoResponseDTO(
+                    rank.id,
+                    rank.ordinaryHourlyWage,
+                    rank.hourlyWageCalculationUnit,
+                    rank.breakTime,
+                    rank.nightBreakTime,
+                    rank.paidHoliday,
+                    rank.isCommuteTimeVaryByDayOfWeek,
+                    rank.isNightAllowance,
+                    rank.nightAllowanceExtraMultiples,
+                    rank.isOvertimeAllowance,
+                    rank.overtimeAllowanceExtraMultiples,
+                    rank.isHolidayAllowance,
+                    rank.holidayAllowanceExtraMultiples,
+                    rank.payrollType
+                ),
+                workplaceRequest.requestWorkRecord.id,
+
+                )
         ).from(workplaceRequest)
-            .innerJoin(workplaceRequest.requestEmployeeMember, employeeMember)
-            .innerJoin(employeeMember.employeeRank, employeeRank)
+            .innerJoin(workplaceRequest.requestEmployeeMemberRank, employeeMemberRank)
+            .innerJoin(employeeMemberRank.employeeMember, employeeMember)
+            .innerJoin(employeeMemberRank.employeeRank, rank)
+            .innerJoin(employeeMember.employeeRank, currentRank)
             .where(workplaceRequest.id.eq(requestId))
             .fetchFirst()
     }
@@ -325,12 +351,19 @@ class BossWorkplaceRepository : RepositorySupport() {
             QWorkplaceRequestCorrectionWorkRecordResponseDTO(
                 workRecord.officeGoingTime,
                 workRecord.quittingTime,
+                workRecord.breakTime,
+                workRecord.nightBreakTime,
+                workRecord.totalSalary,
                 workRecord.workDate
             )
         )
             .from(workRecord)
             .where(workRecord.id.eq(workRecordId))
             .fetchFirst()
+    }
+
+    /**  **/
+    fun findEmployeeRankInfo(requestMember: EmployeeMemberSimpleResponseDTO) {
 
     }
 
@@ -504,6 +537,19 @@ class BossWorkplaceRepository : RepositorySupport() {
         return update(memberRepWorkplace)
             .set(memberRepWorkplace.workplace, Workplace(workplaceId))
             .where(memberRepWorkplace.member.id.eq(memberId))
+            .execute() == 1L
+    }
+
+    /** 일터 요청 메모 변경 **/
+    fun updateRequestMemo(requestId: Long, memo: String): Boolean {
+        return update(workplaceRequest)
+            .apply {
+                if (memo.isBlank())
+                    setNull(workplaceRequest.memo)
+                else
+                    set(workplaceRequest.memo, memo)
+            }
+            .where(workplaceRequest.id.eq(requestId))
             .execute() == 1L
     }
 
