@@ -4,10 +4,7 @@ import com.albanote.memberservice.domain.dto.request.workplace.*
 import com.albanote.memberservice.domain.dto.response.workplace.*
 import com.albanote.memberservice.domain.entity.member.Member
 import com.albanote.memberservice.domain.entity.workplace.*
-import com.albanote.memberservice.domain.entity.workplace.work.EmployeeTodo
-import com.albanote.memberservice.domain.entity.workplace.work.Todo
-import com.albanote.memberservice.domain.entity.workplace.work.TodoReferenceImage
-import com.albanote.memberservice.domain.entity.workplace.work.WorkType
+import com.albanote.memberservice.domain.entity.workplace.work.*
 import com.albanote.memberservice.error.exception.workplace.NotExistWorkplaceException
 import com.albanote.memberservice.error.exception.workplace.NotFoundWorkRecordException
 import com.albanote.memberservice.repository.workplace.BossWorkplaceRepository
@@ -82,6 +79,12 @@ class BossWorkplaceService(
     /** 요청 상세 보기 **/
     fun getRequestDetail(requestId: Long): WorkplaceRequestDetailResponseDTO {
         val requestDetail = workplaceRepository.findRequestDetail(requestId) ?: throw Exception("존재하지 않는 요청")
+        if (requestDetail.workRecordId != null && requestDetail.requestType == WorkplaceRequestType.COMMUTE_CORRECTION) {
+            val workRecord = workplaceRepository.findRequestCorrectionCommuteTime(requestDetail.workRecordId!!)
+                    ?: throw Exception("존재하지 않는 근무")
+            requestDetail.setCorrectionWorkRecordInfo(workRecord)
+        }
+        requestDetail.existingOfficeGoingTime
         requestDetail.requestMember.imageUrl = s3service.convertCloudFrontUrl(requestDetail.requestMember.imageUrl)
 
         return requestDetail
