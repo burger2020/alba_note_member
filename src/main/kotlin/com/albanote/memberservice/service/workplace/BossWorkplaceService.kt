@@ -62,7 +62,7 @@ class BossWorkplaceService(
         return workplaces
     }
 
-    /** 요청 조회 **/
+    /** 요청 리스트 조회 **/
     fun getRequestList(
         workplaceId: Long,
         isIncomplete: Boolean,
@@ -147,8 +147,6 @@ class BossWorkplaceService(
         workRecordDetail.employeeMember.imageUrl =
             s3service.convertCloudFrontUrl(workRecordDetail.employeeMember.imageUrl)
 
-        //todo 부가 정보 입력
-
         return workRecordDetail
     }
 
@@ -205,6 +203,13 @@ class BossWorkplaceService(
         return imageUrl
     }
 
+    /** 요청 응답 (수락 or 거절) **/
+    @Transactional
+    fun postWorkplaceRequestResponse(dto: WorkplaceRequestResponseRequestDTO): Boolean {
+        //todo fcm to 요청 생성자
+        return workplaceRepository.updateWorkplaceRequestResponse(dto.requestId, dto.isComplete)
+    }
+
     /** 직책 생성 **/
     @Transactional
     fun postCreateEmployeeRank(dto: CreateEmployeeRankResponseDTO): Long? {
@@ -241,6 +246,7 @@ class BossWorkplaceService(
         chargeEmployees.forEach {
             em.persist(it)
         }
+        //todo fcm to 할일 할당된 멤버
         return todo.id
     }
 
@@ -272,7 +278,7 @@ class BossWorkplaceService(
     @Transactional
     fun putModifyTodo(dto: ModifyWorkplaceTodoRequestDTO): Long? {
         workplaceRepository.deleteTodoToDeprecated(dto.todoIdToModify)
-
+        //todo fcm to 할일 할당된 멤버
         return postCreateTodo(dto.convertToCreateDTO())
     }
 
@@ -296,6 +302,7 @@ class BossWorkplaceService(
         dto.commuteTimeByDateOfWeek.forEach {
             em.persist(it.convertToEntity(modifiedRank))
         }
+        //todo fcm to 해당 직책 멤버
         return modifiedRank.id
     }
 
@@ -310,11 +317,13 @@ class BossWorkplaceService(
         } else {
             return workplaceRepository.deleteWorkplaceToDeprecated(workplaceId)
         }
+        //todo fcm to 일터 남은 멤버들
     }
 
     /** 할 일 삭제 **/
     @Transactional
     fun deleteDeleteTodo(todoId: Long): Boolean {
+        //todo fcm to 할일 할당된 멤버
         return workplaceRepository.deleteTodoToDeprecated(todoId)
     }
 
