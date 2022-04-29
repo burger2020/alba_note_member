@@ -1,9 +1,7 @@
 package com.albanote.memberservice.domain.dto.request.workplace
 
-import com.albanote.memberservice.domain.entity.workplace.BusinessCertificationInfo
 import com.albanote.memberservice.domain.entity.workplace.Coordinate
 import com.albanote.memberservice.domain.entity.workplace.Workplace
-import java.time.LocalDate
 
 /**
  * 일터 생성 요청 DTO

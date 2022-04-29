@@ -193,6 +193,16 @@ class BossWorkplaceController(
         return ResponseEntity.ok(response)
     }
 
+    /** 요청 응답 (수락 or 거절) **/
+    @PutMapping("/workplaceRequestResponse")
+    fun putWorkplaceRequestResponse(
+        @RequestBody dto: WorkplaceRequestResponseRequestDTO
+    ): ResponseEntity<Boolean> {
+        val result = workplaceService.postWorkplaceRequestResponse(dto)
+
+        return ResponseEntity.ok(result)
+    }
+
     /** 할 일 수정 **/
     @PutMapping("/modifyTodo")
     fun putModifyTodo(

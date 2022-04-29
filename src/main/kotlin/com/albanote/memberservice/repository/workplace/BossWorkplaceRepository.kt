@@ -265,6 +265,7 @@ class BossWorkplaceRepository : RepositorySupport() {
             .from(workplaceRequest)
             .where(workplaceRequest.workplace.id.eq(workplaceId))
             .apply { if (isIncomplete) where(workplaceRequest.isCompleted.isNull) }
+            .pageableOption(pageable)
             .orderBy(workplaceRequest.createDate.desc())
             .fetch()
         return select(
@@ -287,7 +288,7 @@ class BossWorkplaceRepository : RepositorySupport() {
             .innerJoin(employeeMemberRank.employeeMember, employeeMember)
             .innerJoin(employeeMember.employeeRank, employeeRank)
             .where(workplaceRequest.id.`in`(workplaceRequestIds))
-            .pageableOption(pageable)
+            .limit(workplaceRequestIds.size.toLong())
             .fetch()
     }
 
@@ -334,8 +335,7 @@ class BossWorkplaceRepository : RepositorySupport() {
                     rank.payrollType
                 ),
                 workplaceRequest.requestWorkRecord.id,
-
-                )
+            )
         ).from(workplaceRequest)
             .innerJoin(workplaceRequest.requestEmployeeMemberRank, employeeMemberRank)
             .innerJoin(employeeMemberRank.employeeMember, employeeMember)
@@ -558,6 +558,14 @@ class BossWorkplaceRepository : RepositorySupport() {
         return update(workplaceImage)
             .set(workplaceImage.imageUrl, imageUrl)
             .where(workplaceImage.workplace.id.eq(workplaceId))
+            .execute() == 1L
+    }
+
+    /** 요청 응답 (수락 or 거절) **/
+    fun updateWorkplaceRequestResponse(requestId: Long, complete: Boolean): Boolean {
+        return update(workplaceRequest)
+            .set(workplaceRequest.isCompleted, complete)
+            .where(workplaceRequest.id.eq(requestId))
             .execute() == 1L
     }
 
